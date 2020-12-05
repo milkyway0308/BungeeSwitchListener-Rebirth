@@ -1,0 +1,5 @@
+Enable localhost-only connection: true
+# Bukkit connection validate code.
+# Please change after use.
+# WARNING: Bukkit and bungeecord's System identify code must have to equal.
+System Identify Code: 'BSL|DataIdentifier00'
