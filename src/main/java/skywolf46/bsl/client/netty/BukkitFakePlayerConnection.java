@@ -9,17 +9,17 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import skywolf46.bsl.client.BukkitSwitchListener;
 import skywolf46.bsl.client.netty.handler.BukkitInitializeHandler;
+import skywolf46.bsl.global.BungeeSwitchListenerCore;
 import skywolf46.bsl.global.api.BSLCoreAPI;
+import skywolf46.bsl.global.util.BSLChannel;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 
 public class BukkitFakePlayerConnection {
     private Channel channel;
     private Bootstrap strap;
 
-    public BukkitFakePlayerConnection(){
+    public BukkitFakePlayerConnection() {
         EventLoopGroup group = new NioEventLoopGroup();
         strap = new Bootstrap();
         strap.group(group)
@@ -29,12 +29,13 @@ public class BukkitFakePlayerConnection {
         try {
             channel = strap.connect(new InetSocketAddress(BukkitSwitchListener.getConfiguration().getIP(), BukkitSwitchListener.getConfiguration().getPort())).sync().channel();
             BSLCoreAPI.writer().printText("Connected!");
+            BungeeSwitchListenerCore.registerChannel(-1, new BSLChannel(channel, -1));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    public void send(ByteBuf buf){
+    public void send(ByteBuf buf) {
 
     }
 }

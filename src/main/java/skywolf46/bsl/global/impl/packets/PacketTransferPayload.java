@@ -8,6 +8,7 @@ import skywolf46.bsl.global.abstraction.enums.Side;
 import skywolf46.bsl.global.abstraction.packets.AbstractPacket;
 
 public class PacketTransferPayload extends AbstractPacket {
+    private long tiemstamp;
     private ByteBuf buffer;
     private int serverPort;
 
@@ -43,5 +44,27 @@ public class PacketTransferPayload extends AbstractPacket {
     public void listen(Channel channel, AbstractPacket packetForged) {
         super.listen(channel, packetForged);
         buffer.release();
+    }
+
+    private int index = 0;
+
+    @Override
+    public void retainBuffer() {
+        getBuffer().retain();
+    }
+
+    @Override
+    public void releaseBuffer() {
+        getBuffer().release();
+    }
+
+    @Override
+    public void markBuffer() {
+        index = getBuffer().readerIndex();
+    }
+
+    @Override
+    public void resetBuffer() {
+        getBuffer().readerIndex(index);
     }
 }

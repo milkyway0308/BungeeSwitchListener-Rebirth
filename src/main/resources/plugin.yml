@@ -1,3 +1,3 @@
-name: BukkitSwitchListener
+name: BungeeSwitchListener
 version: 1.0
 main: skywolf46.bsl.client.BukkitSwitchListener

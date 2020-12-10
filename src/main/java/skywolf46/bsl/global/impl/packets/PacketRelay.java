@@ -3,37 +3,41 @@ package skywolf46.bsl.global.impl.packets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import skywolf46.bsl.global.BungeeVariables;
-import skywolf46.bsl.global.abstraction.enums.Side;
 import skywolf46.bsl.global.abstraction.packets.AbstractPacket;
+import skywolf46.bsl.global.api.BSLCoreAPI;
 
-public class PacketPayload extends AbstractPacket {
-    private ByteBuf stream;
+public class PacketRelay extends AbstractPacket {
+    private int port;
+    private ByteBuf buffer;
 
-    public PacketPayload() {
-        this(true);
+    public PacketRelay(int port, AbstractPacket packet) {
+        this.port = port;
+        buffer = Unpooled.directBuffer();
+        buffer.writeInt(port);
+        buffer.writeInt(packet.getID());
+        BSLCoreAPI.getPacket(packet.getID()).writer().write(packet, buffer);
     }
 
-    public PacketPayload(boolean create) {
-        if (create)
-            this.stream = Unpooled.directBuffer();
+    public PacketRelay(ByteBuf buf) {
+        this.port = buf.readInt();
+        this.buffer = buf;
     }
 
-    public PacketPayload(ByteBuf buf) {
-        this.stream = buf;
+    public PacketRelay(){
+
     }
 
     public ByteBuf getBuffer() {
-        return stream;
+        return buffer;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     @Override
     public int getID() {
-        return BungeeVariables.PACKET_GLOBAL_PAYLOAD;
-    }
-
-    @Override
-    public Side getSide() {
-        return Side.GLOBAL;
+        return BungeeVariables.PACKET_RELAY;
     }
 
     private int index = 0;

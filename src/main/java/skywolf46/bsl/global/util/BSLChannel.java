@@ -9,9 +9,15 @@ import skywolf46.bsl.global.api.BSLCoreAPI;
 
 public class BSLChannel {
     private Channel chan;
+    private int port;
 
-    public BSLChannel(Channel chan) {
+    public BSLChannel(Channel chan, int port) {
         this.chan = chan;
+        this.port = port;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public BSLChannel send(AbstractPacket pc) {
@@ -22,6 +28,7 @@ public class BSLChannel {
         buf.writeInt(pc.getID());
         BSLCoreAPI.getPacket(pc.getID()).writer().write(pc, buf);
         chan.writeAndFlush(buf);
+        pc.releaseBuffer();
         return this;
     }
 
@@ -34,6 +41,7 @@ public class BSLChannel {
         BSLCoreAPI.getPacket(pc.getID()).writer().write(pc, buf);
         try {
             chan.writeAndFlush(buf).sync();
+            pc.releaseBuffer();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -42,6 +42,7 @@ public class AuthenticateHandler extends ChannelInboundHandlerAdapter {
 
     private void injectHandler(ChannelHandlerContext ctx) {
         ctx.pipeline().addFirst("recv-handler", new PacketRecvHandler());
+        ctx.pipeline().addLast("exception-handler", new BCDisconnectionHandler());
     }
 
     private void writeIdentifier(ChannelHandlerContext ctx) {

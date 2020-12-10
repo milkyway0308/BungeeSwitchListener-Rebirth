@@ -1,5 +1,6 @@
 package skywolf46.bsl.global;
 
+import io.netty.channel.Channel;
 import skywolf46.bsl.global.abstraction.AbstractConsoleWriter;
 import skywolf46.bsl.global.abstraction.enums.Side;
 import skywolf46.bsl.global.abstraction.packets.AbstractPacket;
@@ -10,7 +11,9 @@ import skywolf46.bsl.global.impl.packets.*;
 import skywolf46.bsl.global.util.BSLChannel;
 import skywolf46.bsl.global.util.ByteBufUtility;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class BungeeSwitchListenerCore {
     private static Side side;
@@ -18,6 +21,7 @@ public class BungeeSwitchListenerCore {
     private static AbstractConsoleWriter writer = null;
     private static HashMap<Integer, AbstractPacket> packets = new HashMap<>();
     private static HashMap<Integer, BSLChannel> channels = new HashMap<>();
+    private static HashMap<Channel, BSLChannel> channelsWrap = new HashMap<>();
     private static String id;
 
 
@@ -70,13 +74,28 @@ public class BungeeSwitchListenerCore {
         registerPacket(BungeeVariables.PACKET_GLOBAL_PAYLOAD, new PacketPayload(false));
         registerPacket(BungeeVariables.PACKET_RECEIVE_PAYLOAD, new PacketReceivePayload(0, false));
         registerPacket(BungeeVariables.PACKET_TRANSFER_PAYLOAD, new PacketTransferPayload(0, false));
+        registerPacket(BungeeVariables.PACKET_RECONSTRUCT, new PacketReconstruct());
+        registerPacket(BungeeVariables.PACKET_RELAY, new PacketRelay());
+        registerPacket(BungeeVariables.PACKET_REPLY_WRAPPER, new PacketReplyable());
+        registerPacket(BungeeVariables.PACKET_BROADCAST_PACKET, new PacketBroadcast());
+
+        getPacket(BungeeVariables.PACKET_RECONSTRUCT).register(PacketReconstruct::new);
+        getPacket(BungeeVariables.PACKET_RECONSTRUCT).register((packet, buf) -> {
+            buf.writeBytes(((PacketReconstruct) packet).getBuffer());
+        });
+
+        getPacket(BungeeVariables.PACKET_BROADCAST_PACKET).register((AbstractPacket.PacketReader) PacketBroadcast::new);
+        getPacket(BungeeVariables.PACKET_BROADCAST_PACKET).register((packet, buf) -> {
+            buf.writeBytes(((PacketBroadcast) packet).getBuffer());
+        });
+
     }
 
 
     private static void initializeServer() {
         initialize();
         side = Side.SERVER;
-        writer = new BungeeTextSender();
+        writer = new BungeeTextSender("BungeeSwitchListener");
         BSLCoreAPI.writer().printText("Writer initialized");
         // Phase 1 - Global initialization
         BSLCoreAPI.writer().printText("Initializing phase 1 - Global initialization");
@@ -88,6 +107,7 @@ public class BungeeSwitchListenerCore {
             buf.retain();
             return new PacketPayload(buf);
         });
+        getPacket(BungeeVariables.PACKET_RELAY).register((AbstractPacket.PacketReader) PacketRelay::new);
         // Phase 3 - Writer Initialization
         BSLCoreAPI.writer().printText("Initializing phase 3 - Registering writers");
         getPacket(BungeeVariables.PACKET_VALIDATION_RESULT).register((packet, buffer) -> {
@@ -99,14 +119,15 @@ public class BungeeSwitchListenerCore {
             PacketReceivePayload recv = (PacketReceivePayload) packet;
             buffer.writeInt(recv.getServerPort());
             buffer.writeBytes(recv.getBuffer());
-            recv.getBuffer().release();
+//            recv.getBuffer().release();
         });
 
         getPacket(BungeeVariables.PACKET_GLOBAL_PAYLOAD).register((packet, buffer) -> {
             PacketPayload payload = (PacketPayload) packet;
             buffer.writeBytes(payload.getBuffer());
-            payload.getBuffer().release();
+//            payload.getBuffer().release();
         });
+
 
         // Phase 4 = Listener Initialization
         BSLCoreAPI.writer().printText("Initializing phase 4 - Registering listeners");
@@ -114,10 +135,11 @@ public class BungeeSwitchListenerCore {
             PacketValidation val = (PacketValidation) pac;
             try {
                 System.out.println("Client ID " + val.getId());
-                BSLChannel chan = new BSLChannel(c);
+                BSLChannel chan = new BSLChannel(c, val.getPort());
                 if (val.getId().equals(id)) {
                     BSLCoreAPI.writer().printText("Server connected from port " + val.getPort());
                     channels.put(val.getPort(), chan);
+                    channelsWrap.put(c, chan);
                     chan.send(new PacketValidationResult(true));
                 } else {
                     BSLCoreAPI.writer().printError("Server connection rejected from " + c.remoteAddress() + " : ID not match");
@@ -129,12 +151,27 @@ public class BungeeSwitchListenerCore {
             }
         });
 
+        getPacket(BungeeVariables.PACKET_RELAY).attachListener((chan, buf) -> {
+            PacketRelay rel = (PacketRelay) buf;
+            PacketReconstruct con = new PacketReconstruct(rel.getBuffer());
+            getChannel(rel.getPort()).send(con);
+        });
+
+        getPacket(BungeeVariables.PACKET_BROADCAST_PACKET).attachListener((chan, buf) -> {
+            PacketBroadcast br = (PacketBroadcast) buf;
+//            br.getBuffer().markReaderIndex();
+//            br.getBuffer().readInt();
+//            System.out.println("Rebroadcasting Packet " + br.getBuffer().readInt());
+//            br.getBuffer().resetReaderIndex();
+            BSLCoreAPI.bungee().broadcast(getChannel(chan).getPort(), br);
+//            br.releaseBuffer();
+        });
     }
 
     private static void initializeClient() {
         initialize();
         side = Side.CLIENT;
-        writer = new BukkitTextWriter();
+        writer = new BukkitTextWriter("BungeeSwitchListener");
         BSLCoreAPI.writer().printText("Writer initialized");
         // Phase 1 - Global initialization
         BungeeInitializer.init();
@@ -157,7 +194,7 @@ public class BungeeSwitchListenerCore {
         getPacket(BungeeVariables.PACKET_GLOBAL_PAYLOAD).register((packet, buffer) -> {
             PacketPayload payload = (PacketPayload) packet;
             buffer.writeBytes(payload.getBuffer());
-            payload.getBuffer().release();
+//            payload.getBuffer().release();
         });
 
 
@@ -165,7 +202,7 @@ public class BungeeSwitchListenerCore {
             PacketTransferPayload payload = (PacketTransferPayload) packet;
             buffer.writeInt(payload.getServerPort());
             buffer.writeBytes(payload.getBuffer());
-            payload.getBuffer().release();
+//            payload.getBuffer().release();
         });
 
         // Phase 4 = Listener Initialization
@@ -179,7 +216,51 @@ public class BungeeSwitchListenerCore {
                 BSLCoreAPI.writer().printText("Server connected!");
             }
         });
+
+        getPacket(BungeeVariables.PACKET_RECONSTRUCT).attachListener((chan, packet) -> {
+            PacketReconstruct reconstructable = (PacketReconstruct) packet;
+            int recID = reconstructable.getBuffer().readInt();
+            AbstractPacket pac = getPacket(recID);
+            if (pac == null) {
+                BSLCoreAPI.writer().printError("Cannot reconstruct packet ID " + recID);
+                return;
+            }
+            pac.listen(chan, pac.reader().read(reconstructable.getBuffer()));
+        });
+
+        getPacket(BungeeVariables.PACKET_BROADCAST_PACKET).attachListener((chan, packet) -> {
+            PacketBroadcast reconstructable = (PacketBroadcast) packet;
+            reconstructable.getBuffer().readInt();
+            int recID = reconstructable.getBuffer().readInt();
+            AbstractPacket pac = getPacket(recID);
+            if (pac == null) {
+                BSLCoreAPI.writer().printError("Cannot reconstruct broadcasted packet ID " + recID);
+                return;
+            }
+            System.out.println("Packet ID " + recID + "/" + pac.getClass());
+            pac.listen(chan, pac.reader().read(reconstructable.getBuffer()));
+        });
     }
 
 
+    public static BSLChannel getChannel(int i) {
+        return channels.get(i);
+    }
+
+
+    public static BSLChannel getChannel(Channel c) {
+        return channelsWrap.get(c);
+    }
+
+    public static void registerChannel(int port, BSLChannel chan) {
+        channels.put(port, chan);
+    }
+
+    public static void unregisterChannel(int port) {
+        channels.remove(port);
+    }
+
+    public static List<Integer> getChannels() {
+        return new ArrayList<>(channels.keySet());
+    }
 }

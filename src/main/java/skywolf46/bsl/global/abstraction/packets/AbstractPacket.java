@@ -40,11 +40,31 @@ public abstract class AbstractPacket {
     }
 
     public void listen(Channel channel, AbstractPacket packetForged) {
-        for (BiConsumer<Channel, AbstractPacket> cons : listener)
+        packetForged.markBuffer();
+        for (BiConsumer<Channel, AbstractPacket> cons : listener){
             cons.accept(channel, packetForged);
+            packetForged.resetBuffer();
+        }
+        packetForged.releaseBuffer();
     }
 
     public abstract int getID();
+
+    public void retainBuffer() {
+
+    }
+
+    public void releaseBuffer() {
+
+    }
+
+    public void markBuffer(){
+
+    }
+
+    public void resetBuffer(){
+
+    }
 
     @FunctionalInterface
     public interface PacketWriter<T extends AbstractPacket> {

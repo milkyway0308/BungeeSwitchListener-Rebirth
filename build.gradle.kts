@@ -27,6 +27,7 @@ dependencies {
     implementation("skywolf46:commandannotation:2.0.6")
     compileOnly(files("V:/API/Java/Minecraft/Bukkit/Spigot/Spigot 1.12.2.jar"))
     compileOnly(files("O:\\Servers\\1.12.2 Bungeecord Server/BungeeCord.jar"))
+    testCompile("io.netty:netty-testsuite-http2:4.1.54.Final")
 }
 
 
@@ -35,7 +36,7 @@ publishing {
     repositories {
         maven {
             name = "Github"
-            url = uri("https://github.com/milkyway0308/BungeeSwitchListener-Rebirth")
+            url = uri("https://maven.pkg.github.com/milkyway0308/BungeeSwitchListener-Rebirth")
             credentials {
                 username = properties["gpr.user"] as String
                 password = properties["gpr.key"] as String

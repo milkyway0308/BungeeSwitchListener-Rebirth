@@ -36,10 +36,11 @@ public class BukkitInitializeHandler extends ChannelInboundHandlerAdapter {
             BSLCoreAPI.writer().printText("Bungee communication success! Changing handlers...");
             ctx.pipeline().remove(this);
             ctx.pipeline().addFirst("recv-listener", new PacketRecvHandler());
+            ctx.pipeline().addLast("exception-listener", new BKDisconnectionHandler());
             PacketPayload test = new PacketPayload(true);
             ByteBufUtility.writeString(test.getBuffer(), "Hello from client port " + Bukkit.getPort() + "!");
             test.getBuffer().writeInt(4401);
-            new BSLChannel(ctx.channel())
+            new BSLChannel(ctx.channel(), -1)
                     .send(new PacketValidation(BukkitSwitchListener.getConfiguration().getIdentify(), Bukkit.getPort()))
                     .send(test);
         }

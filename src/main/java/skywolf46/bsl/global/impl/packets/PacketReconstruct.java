@@ -1,39 +1,32 @@
 package skywolf46.bsl.global.impl.packets;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import skywolf46.bsl.global.BungeeVariables;
 import skywolf46.bsl.global.abstraction.enums.Side;
 import skywolf46.bsl.global.abstraction.packets.AbstractPacket;
 
-public class PacketPayload extends AbstractPacket {
-    private ByteBuf stream;
-
-    public PacketPayload() {
-        this(true);
+public class PacketReconstruct extends AbstractPacket {
+    private ByteBuf buf;
+    public PacketReconstruct(ByteBuf buf){
+        this.buf = buf;
     }
 
-    public PacketPayload(boolean create) {
-        if (create)
-            this.stream = Unpooled.directBuffer();
-    }
+    public PacketReconstruct() {
 
-    public PacketPayload(ByteBuf buf) {
-        this.stream = buf;
-    }
-
-    public ByteBuf getBuffer() {
-        return stream;
     }
 
     @Override
     public int getID() {
-        return BungeeVariables.PACKET_GLOBAL_PAYLOAD;
+        return BungeeVariables.PACKET_RECONSTRUCT;
     }
 
     @Override
     public Side getSide() {
-        return Side.GLOBAL;
+        return Side.CLIENT;
+    }
+
+    public ByteBuf getBuffer() {
+        return buf;
     }
 
     private int index = 0;

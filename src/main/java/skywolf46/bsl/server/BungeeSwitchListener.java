@@ -1,5 +1,6 @@
 package skywolf46.bsl.server;
 
+import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -10,6 +11,7 @@ import skywolf46.bsl.global.abstraction.enums.Side;
 import skywolf46.bsl.global.api.BSLCoreAPI;
 import skywolf46.bsl.global.impl.packets.PacketPayload;
 import skywolf46.bsl.global.util.ByteBufUtility;
+import skywolf46.bsl.server.command.ConnectedInfoCommand;
 import skywolf46.bsl.server.configuration.BungeeSwitchConfiguration;
 import skywolf46.bsl.server.netty.hijack.BungeeConnectionHijacker;
 
@@ -29,6 +31,7 @@ public class BungeeSwitchListener extends Plugin {
     public void onEnable() {
         BungeeSwitchListenerCore.init(Side.SERVER);
         BSLCoreAPI.writer().printText("BSLCore initialized to server (Bungeecord)");
+        BungeeCord.getInstance().getPluginManager().registerCommand(this, new ConnectedInfoCommand());
         File fx = new File(getDataFolder(), "config.yml");
         if (!fx.exists()) {
             BSLCoreAPI.writer().printText("Configuration file not exists. Generating new one.");
@@ -62,4 +65,6 @@ public class BungeeSwitchListener extends Plugin {
     public static BungeeSwitchConfiguration getConfig() {
         return config;
     }
+
+
 }

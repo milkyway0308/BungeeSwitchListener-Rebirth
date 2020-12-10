@@ -44,4 +44,26 @@ public class PacketReceivePayload extends AbstractPacket {
         super.listen(channel, packetForged);
         buffer.release();
     }
+
+    private int index = 0;
+
+    @Override
+    public void retainBuffer() {
+        getBuffer().retain();
+    }
+
+    @Override
+    public void releaseBuffer() {
+        getBuffer().release();
+    }
+
+    @Override
+    public void markBuffer() {
+        index = getBuffer().readerIndex();
+    }
+
+    @Override
+    public void resetBuffer() {
+        getBuffer().readerIndex(index);
+    }
 }
