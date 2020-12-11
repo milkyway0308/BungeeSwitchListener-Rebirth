@@ -237,7 +237,6 @@ public class BungeeSwitchListenerCore {
                 BSLCoreAPI.writer().printError("Cannot reconstruct broadcasted packet ID " + recID);
                 return;
             }
-            System.out.println("Packet ID " + recID + "/" + pac.getClass());
             pac.listen(chan, pac.reader().read(reconstructable.getBuffer()));
         });
     }

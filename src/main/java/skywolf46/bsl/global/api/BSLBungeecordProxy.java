@@ -31,7 +31,7 @@ public class BSLBungeecordProxy {
     }
 
 
-    public static void send(AbstractPacket packet) {
+    public void send(AbstractPacket packet) {
         channel().send(packet);
     }
 

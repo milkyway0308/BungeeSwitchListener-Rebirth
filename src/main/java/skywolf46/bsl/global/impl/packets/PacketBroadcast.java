@@ -14,7 +14,6 @@ public class PacketBroadcast extends AbstractPacket {
         buffer = Unpooled.directBuffer();
         buffer.writeInt(this.port = port);
         buffer.writeInt(packet.getID());
-        System.out.println("Packet ID " + packet.getID());
         BSLCoreAPI.getPacket(packet.getID()).writer().write(packet, buffer);
     }
 

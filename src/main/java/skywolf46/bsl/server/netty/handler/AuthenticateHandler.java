@@ -12,7 +12,7 @@ public class AuthenticateHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         ByteBuf bb = (ByteBuf) msg;
         bb.markReaderIndex();
-        System.out.println(bb.readableBytes());
+//        System.out.println(bb.readableBytes());
         if (bb.readableBytes() > 16) {
             if (bb.readInt() == BungeeVariables.BUNGEE_IDENTIFIER_01
                     && bb.readInt() == BungeeVariables.BUNGEE_IDENTIFIER_02

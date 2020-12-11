@@ -54,12 +54,12 @@ public class BungeeSwitchListener extends Plugin {
         config = new BungeeSwitchConfiguration(configuration);
         BungeeSwitchListenerCore.setIdentify(config.getAuthID());
         BungeeConnectionHijacker.hijack();
-        BSLCoreAPI.getPacket(BungeeVariables.PACKET_GLOBAL_PAYLOAD)
-                .attachListener((c, packet) -> {
-                    PacketPayload payload = (PacketPayload) packet;
-                    System.out.println(ByteBufUtility.readString(payload.getBuffer()));
-                    System.out.println(((PacketPayload) packet).getBuffer().readInt());
-                });
+//        BSLCoreAPI.getPacket(BungeeVariables.PACKET_GLOBAL_PAYLOAD)
+//                .attachListener((c, packet) -> {
+//                    PacketPayload payload = (PacketPayload) packet;
+//                    System.out.println(ByteBufUtility.readString(payload.getBuffer()));
+//                    System.out.println(((PacketPayload) packet).getBuffer().readInt());
+//                });
     }
 
     public static BungeeSwitchConfiguration getConfig() {
