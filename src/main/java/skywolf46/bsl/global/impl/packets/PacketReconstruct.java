@@ -1,14 +1,17 @@
 package skywolf46.bsl.global.impl.packets;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import skywolf46.bsl.global.BungeeVariables;
 import skywolf46.bsl.global.abstraction.enums.Side;
 import skywolf46.bsl.global.abstraction.packets.AbstractPacket;
 
 public class PacketReconstruct extends AbstractPacket {
     private ByteBuf buf;
-    public PacketReconstruct(ByteBuf buf){
-        this.buf = buf;
+
+    public PacketReconstruct(ByteBuf buf) {
+        this.buf = Unpooled.directBuffer();
+        this.buf.writeBytes(buf);
     }
 
     public PacketReconstruct() {

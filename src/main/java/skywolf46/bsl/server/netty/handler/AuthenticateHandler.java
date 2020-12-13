@@ -4,6 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 import skywolf46.bsl.global.BungeeVariables;
 
 public class AuthenticateHandler extends ChannelInboundHandlerAdapter {
@@ -27,6 +29,7 @@ public class AuthenticateHandler extends ChannelInboundHandlerAdapter {
             }
         }
         bb.resetReaderIndex();
+        ctx.pipeline().remove(this);
         super.channelRead(ctx, msg);
     }
 
@@ -42,6 +45,8 @@ public class AuthenticateHandler extends ChannelInboundHandlerAdapter {
 
     private void injectHandler(ChannelHandlerContext ctx) {
         ctx.pipeline().addFirst("recv-handler", new PacketRecvHandler());
+        ctx.pipeline().addFirst("buffer-encoder", new LengthFieldPrepender(8));
+        ctx.pipeline().addFirst("buffer-decoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 8, 0, 8));
         ctx.pipeline().addLast("exception-handler", new BCDisconnectionHandler());
     }
 

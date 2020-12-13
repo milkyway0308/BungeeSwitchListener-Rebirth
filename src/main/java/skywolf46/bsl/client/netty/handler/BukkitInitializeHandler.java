@@ -4,14 +4,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 import org.bukkit.Bukkit;
 import skywolf46.bsl.client.BukkitSwitchListener;
 import skywolf46.bsl.global.BungeeVariables;
 import skywolf46.bsl.global.api.BSLCoreAPI;
-import skywolf46.bsl.global.impl.packets.PacketPayload;
 import skywolf46.bsl.global.impl.packets.PacketValidation;
-import skywolf46.bsl.global.util.BSLChannel;
-import skywolf46.bsl.global.util.ByteBufUtility;
 
 public class BukkitInitializeHandler extends ChannelInboundHandlerAdapter {
 
@@ -36,13 +35,13 @@ public class BukkitInitializeHandler extends ChannelInboundHandlerAdapter {
             BSLCoreAPI.writer().printText("Bungee communication success! Changing handlers...");
             ctx.pipeline().remove(this);
             ctx.pipeline().addFirst("recv-listener", new PacketRecvHandler());
+            ctx.pipeline().addFirst("buffer-encoder", new LengthFieldPrepender(8));
+            ctx.pipeline().addFirst("buffer-decoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 8, 0, 8));
             ctx.pipeline().addLast("exception-listener", new BKDisconnectionHandler());
 //            PacketPayload test = new PacketPayload(true);
 //            ByteBufUtility.writeString(test.getBuffer(), "Hello from client port " + Bukkit.getPort() + "!");
 //            test.getBuffer().writeInt(4401);
-//            new BSLChannel(ctx.channel(), -1)
-//                    .send(new PacketValidation(BukkitSwitchListener.getConfiguration().getIdentify(), Bukkit.getPort()))
-//                    .send(test);
+            BSLCoreAPI.bungee().send(new PacketValidation(BukkitSwitchListener.getConfiguration().getIdentify(), Bukkit.getPort()));
         }
     }
 }

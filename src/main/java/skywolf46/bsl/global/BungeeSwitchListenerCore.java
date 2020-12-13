@@ -154,6 +154,7 @@ public class BungeeSwitchListenerCore {
         getPacket(BungeeVariables.PACKET_RELAY).attachListener((chan, buf) -> {
             PacketRelay rel = (PacketRelay) buf;
             PacketReconstruct con = new PacketReconstruct(rel.getBuffer());
+            System.out.println("Sending reconstruct packet : " + BungeeVariables.PACKET_RECONSTRUCT);
             getChannel(rel.getPort()).send(con);
         });
 
@@ -225,6 +226,7 @@ public class BungeeSwitchListenerCore {
                 BSLCoreAPI.writer().printError("Cannot reconstruct packet ID " + recID);
                 return;
             }
+            System.out.println("Reconstructed packet id " + recID);
             pac.listen(chan, pac.reader().read(reconstructable.getBuffer()));
         });
 

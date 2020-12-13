@@ -13,6 +13,8 @@ public class PacketRecvHandler extends ChannelInboundHandlerAdapter {
         ByteBuf buf = (ByteBuf) msg;
         int packetID = buf.readInt();
         AbstractPacket packet = BSLCoreAPI.getPacket(packetID);
+        System.out.println("Discovered packet " + packetID);
+
         if (packet == null) {
             BSLCoreAPI.writer().printError("Packet read error : Unknown packet id " + packetID);
             return;
