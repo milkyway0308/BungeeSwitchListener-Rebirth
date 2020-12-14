@@ -11,12 +11,13 @@ import net.md_5.bungee.connection.InitialHandler;
 import net.md_5.bungee.netty.HandlerBoss;
 import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.*;
-import org.fusesource.jansi.Ansi;
 import skywolf46.bsl.global.api.BSLCoreAPI;
 import skywolf46.bsl.global.util.FinalReleaser;
 import skywolf46.bsl.server.BungeeSwitchListener;
 import skywolf46.bsl.server.netty.handler.AuthenticateHandler;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -53,11 +54,24 @@ public class BungeeConnectionHijacker extends ChannelInitializer<Channel> {
         }
     }
 
+    private static final VarHandle SERVER_CHILD;
+
+    static {
+        try {
+            var lookup = MethodHandles.privateLookupIn(PipelineUtils.class, MethodHandles.lookup());
+            SERVER_CHILD = lookup.findStaticVarHandle(PipelineUtils.class, "SERVER_CHILD", ChannelInitializer.class);
+        } catch (IllegalAccessException | NoSuchFieldException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     public static void hijack() {
         try {
             Field fl = PipelineUtils.class.getField("SERVER_CHILD");
+            fl.setAccessible(true);
             FinalReleaser.release(fl);
             BSLCoreAPI.writer().printText("Hijacking listener...");
+//            fl.set(null, new BungeeConnectionHijacker());
             fl.set(null, new BungeeConnectionHijacker());
             BSLCoreAPI.writer().printText("Listener is under control");
         } catch (Exception ex) {
