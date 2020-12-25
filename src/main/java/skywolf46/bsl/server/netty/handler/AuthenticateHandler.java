@@ -35,7 +35,7 @@ public class AuthenticateHandler extends ChannelInboundHandlerAdapter {
 
     private void removeHandler(ChannelHandlerContext context) {
         try {
-            while (context.pipeline().names().size() > 0) {
+            while (true) {
                 context.pipeline().removeFirst();
             }
         } catch (Exception ex) {

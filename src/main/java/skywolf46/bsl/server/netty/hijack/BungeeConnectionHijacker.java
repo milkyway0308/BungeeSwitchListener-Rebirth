@@ -3,6 +3,7 @@ package skywolf46.bsl.server.netty.hijack;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -20,6 +21,7 @@ import skywolf46.bsl.server.netty.handler.AuthenticateHandler;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 public class BungeeConnectionHijacker extends ChannelInitializer<Channel> {
 

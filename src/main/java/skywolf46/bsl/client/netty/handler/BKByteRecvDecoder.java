@@ -22,7 +22,6 @@ public class BKByteRecvDecoder extends ChannelInboundHandlerAdapter {
             }
             nextByte = ready.readInt();
         }
-        System.out.println("Next byte: " + nextByte);
         if (nextByte >= ready.readableBytes()) {
             boolean cleanBuffer = nextByte == ready.readableBytes();
             byte[] read = new byte[nextByte];

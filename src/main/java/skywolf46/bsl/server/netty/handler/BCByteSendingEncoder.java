@@ -10,7 +10,6 @@ public class BCByteSendingEncoder extends ChannelOutboundHandlerAdapter {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         ByteBuf byteBuf = (ByteBuf) msg;
         ByteBuf next = ctx.alloc().directBuffer();
-        System.out.println("Writing " + byteBuf.readableBytes());
         next.writeInt(byteBuf.readableBytes());
         next.writeBytes(byteBuf);
         byteBuf.release();

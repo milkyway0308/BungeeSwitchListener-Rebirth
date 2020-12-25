@@ -9,6 +9,8 @@ public class BungeeVariables {
 
     // Packet ID Parameters
 
+    public static final int PACKET_KEEP_ALIVE = -0x0001;
+
     // PACKET_VALIDATION
     // Client side packet
     // PacketValidation is validation request to server.

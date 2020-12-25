@@ -7,6 +7,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import skywolf46.bsl.client.BukkitSwitchListener;
 import skywolf46.bsl.client.netty.handler.BukkitInitializeHandler;
 import skywolf46.bsl.global.BungeeSwitchListenerCore;
@@ -14,6 +15,7 @@ import skywolf46.bsl.global.api.BSLCoreAPI;
 import skywolf46.bsl.global.util.BSLChannel;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 public class BukkitFakePlayerConnection {
     private Channel channel;
@@ -25,7 +27,10 @@ public class BukkitFakePlayerConnection {
         strap.group(group)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
-                .handler(new BukkitInitializeHandler());
+                .option(ChannelOption.SO_TIMEOUT, 6000)
+                .handler(new BukkitInitializeHandler())
+
+        ;
         try {
             channel = strap.connect(new InetSocketAddress(BukkitSwitchListener.getConfiguration().getIP(), BukkitSwitchListener.getConfiguration().getPort())).sync().channel();
             BSLCoreAPI.writer().printText("Connected!");
@@ -35,7 +40,4 @@ public class BukkitFakePlayerConnection {
         }
     }
 
-    public void send(ByteBuf buf) {
-
-    }
 }

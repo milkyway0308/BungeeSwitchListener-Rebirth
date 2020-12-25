@@ -10,6 +10,7 @@ public class BKDisconnectionHandler extends ChannelDuplexHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (cause instanceof IOException) {
+            cause.printStackTrace();
             BSLCoreAPI.writer().printError("Bungee disconnected! Waiting for connection...");
         }
     }

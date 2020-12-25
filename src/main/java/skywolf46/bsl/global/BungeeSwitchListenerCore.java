@@ -8,6 +8,7 @@ import skywolf46.bsl.global.api.BSLCoreAPI;
 import skywolf46.bsl.global.impl.bukkit.BukkitTextWriter;
 import skywolf46.bsl.global.impl.bungeecord.BungeeTextSender;
 import skywolf46.bsl.global.impl.packets.*;
+import skywolf46.bsl.global.thread.ChannelKeepAliveThread;
 import skywolf46.bsl.global.util.BSLChannel;
 import skywolf46.bsl.global.util.ByteBufUtility;
 
@@ -22,6 +23,7 @@ public class BungeeSwitchListenerCore {
     private static HashMap<Integer, AbstractPacket> packets = new HashMap<>();
     private static HashMap<Integer, BSLChannel> channels = new HashMap<>();
     private static HashMap<Channel, BSLChannel> channelsWrap = new HashMap<>();
+    private static HashMap<Channel, ChannelKeepAliveThread> channelAlive = new HashMap<>();
     private static String id;
 
 
@@ -69,6 +71,7 @@ public class BungeeSwitchListenerCore {
     }
 
     private static void initialize() {
+        registerPacket(BungeeVariables.PACKET_KEEP_ALIVE, new PacketServerAlive());
         registerPacket(BungeeVariables.PACKET_VALIDATION, new PacketValidation(null, 0));
         registerPacket(BungeeVariables.PACKET_VALIDATION_RESULT, new PacketValidationResult(false));
         registerPacket(BungeeVariables.PACKET_GLOBAL_PAYLOAD, new PacketPayload(false));
@@ -88,6 +91,10 @@ public class BungeeSwitchListenerCore {
         getPacket(BungeeVariables.PACKET_BROADCAST_PACKET).register((packet, buf) -> {
             buf.writeBytes(((PacketBroadcast) packet).getBuffer());
         });
+
+//        getPacket(BungeeVariables.PACKET_KEEP_ALIVE).attachListener((chan, packet) -> {
+//            System.out.println("Keep alive");
+//        });
 
     }
 
@@ -134,11 +141,11 @@ public class BungeeSwitchListenerCore {
         getPacket(BungeeVariables.PACKET_VALIDATION).attachListener((c, pac) -> {
             PacketValidation val = (PacketValidation) pac;
             try {
-                System.out.println("Client ID " + val.getId());
                 BSLChannel chan = new BSLChannel(c, val.getPort());
                 if (val.getId().equals(id)) {
                     BSLCoreAPI.writer().printText("Server connected from port " + val.getPort());
-                    channels.put(val.getPort(), chan);
+//                    channels.put(val.getPort(), chan);
+                    registerChannel(val.getPort(), chan);
                     channelsWrap.put(c, chan);
                     chan.send(new PacketValidationResult(true));
                 } else {
@@ -154,7 +161,6 @@ public class BungeeSwitchListenerCore {
         getPacket(BungeeVariables.PACKET_RELAY).attachListener((chan, buf) -> {
             PacketRelay rel = (PacketRelay) buf;
             PacketReconstruct con = new PacketReconstruct(rel.getBuffer());
-            System.out.println("Sending reconstruct packet : " + BungeeVariables.PACKET_RECONSTRUCT);
             getChannel(rel.getPort()).send(con);
         });
 
@@ -164,6 +170,7 @@ public class BungeeSwitchListenerCore {
 //            br.getBuffer().readInt();
 //            System.out.println("Rebroadcasting Packet " + br.getBuffer().readInt());
 //            br.getBuffer().resetReaderIndex();
+            br.retainBuffer();
             BSLCoreAPI.bungee().broadcast(getChannel(chan).getPort(), br);
 //            br.releaseBuffer();
         });
@@ -226,7 +233,6 @@ public class BungeeSwitchListenerCore {
                 BSLCoreAPI.writer().printError("Cannot reconstruct packet ID " + recID);
                 return;
             }
-            System.out.println("Reconstructed packet id " + recID);
             pac.listen(chan, pac.reader().read(reconstructable.getBuffer()));
         });
 
@@ -239,6 +245,7 @@ public class BungeeSwitchListenerCore {
                 BSLCoreAPI.writer().printError("Cannot reconstruct broadcasted packet ID " + recID);
                 return;
             }
+            pac.retainBuffer();
             pac.listen(chan, pac.reader().read(reconstructable.getBuffer()));
         });
     }
@@ -255,10 +262,13 @@ public class BungeeSwitchListenerCore {
 
     public static void registerChannel(int port, BSLChannel chan) {
         channels.put(port, chan);
+        channelAlive.put(chan.getChannel(), new ChannelKeepAliveThread(chan));
     }
 
     public static void unregisterChannel(int port) {
-        channels.remove(port);
+        BSLChannel cn = channels.remove(port);
+        if (cn != null && channelAlive.containsKey(cn.getChannel()))
+            channelAlive.remove(cn.getChannel()).stopThread();
     }
 
     public static List<Integer> getChannels() {

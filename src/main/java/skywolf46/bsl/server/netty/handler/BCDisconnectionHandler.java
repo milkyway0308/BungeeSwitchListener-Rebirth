@@ -11,6 +11,7 @@ import java.io.IOException;
 public class BCDisconnectionHandler extends ChannelDuplexHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
         if (cause instanceof IOException) {
             BSLChannel chan = BungeeSwitchListenerCore.getChannel(ctx.channel());
             if (chan == null) {

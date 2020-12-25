@@ -21,6 +21,10 @@ public abstract class AbstractPacket {
         listener.add(listen);
     }
 
+    public <T extends AbstractPacket> void attachListener(Class<T> cls, BiConsumer<Channel, T> listen) {
+        listener.add((BiConsumer<Channel, AbstractPacket>) listen);
+    }
+
 
     public void register(PacketWriter writer) {
         this.writer = writer;
@@ -29,6 +33,15 @@ public abstract class AbstractPacket {
 
     public void register(PacketReader reader) {
         this.reader = reader;
+    }
+
+    public <T extends AbstractPacket> void register(Class<T> packet, PacketWriter<T> writer) {
+        register(writer);
+    }
+
+
+    public <T extends AbstractPacket> void register(Class<T> packet, PacketReader<T> writer) {
+        register(writer);
     }
 
     public PacketWriter writer() {
@@ -41,7 +54,7 @@ public abstract class AbstractPacket {
 
     public void listen(Channel channel, AbstractPacket packetForged) {
         packetForged.markBuffer();
-        for (BiConsumer<Channel, AbstractPacket> cons : listener){
+        for (BiConsumer<Channel, AbstractPacket> cons : listener) {
             cons.accept(channel, packetForged);
             packetForged.resetBuffer();
         }
@@ -58,11 +71,11 @@ public abstract class AbstractPacket {
 
     }
 
-    public void markBuffer(){
+    public void markBuffer() {
 
     }
 
-    public void resetBuffer(){
+    public void resetBuffer() {
 
     }
 

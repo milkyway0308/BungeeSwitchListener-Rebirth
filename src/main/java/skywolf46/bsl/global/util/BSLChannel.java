@@ -20,6 +20,10 @@ public class BSLChannel {
         return port;
     }
 
+    public Channel getChannel() {
+        return chan;
+    }
+
     public BSLChannel send(AbstractPacket pc) {
         if (!BSLCoreAPI.getSide().isCurentSide(pc.getSide())) {
             throw new IllegalStateException("Packet type " + pc.getClass().getSimpleName() + " not support sending in side " + BSLCoreAPI.getSide());
