@@ -3,6 +3,7 @@ package skywolf46.bsl.global.abstraction.packets;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import skywolf46.bsl.global.abstraction.enums.Side;
+import skywolf46.bsl.global.util.ByteBufWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,5 +88,23 @@ public abstract class AbstractPacket {
     @FunctionalInterface
     public interface PacketReader<T extends AbstractPacket> {
         T read(ByteBuf buf);
+    }
+
+    public abstract class PacketWrapperWriter<T extends AbstractPacket> implements PacketWriter<T> {
+        @Override
+        public void write(T packet, ByteBuf buffer) {
+            write(packet, new ByteBufWrapper<>(buffer, packet));
+        }
+
+        public abstract void write(T Packet, ByteBufWrapper<T> wrapper);
+    }
+
+    public abstract class PacketWrapperReader<T extends AbstractPacket> implements PacketReader<T> {
+        @Override
+        public T read(ByteBuf buf) {
+            return read(new ByteBufWrapper<>(buf, null));
+        }
+
+        public abstract T read(ByteBufWrapper<Object> reader);
     }
 }

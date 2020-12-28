@@ -2,6 +2,11 @@ package skywolf46.bsl.global.util;
 
 import io.netty.buffer.ByteBuf;
 
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 public class ByteBufWrapper<T> {
     private ByteBuf buf;
     private T original;
@@ -74,34 +79,120 @@ public class ByteBufWrapper<T> {
         return this;
     }
 
-    public byte readByte(){
+    public ByteBufWrapper<T> writeByteArray(byte[] bx) {
+        writeInt(bx.length);
+        writeBytes(bx);
+        return this;
+    }
+
+    public <X> ByteBufWrapper<T> writeList(List<X> lst, BiConsumer<ByteBufWrapper<T>, X> writer) {
+        writeInt(lst.size());
+        for (X x : lst)
+            writer.accept(this, x);
+        return this;
+    }
+
+    public ByteBufWrapper<T> writeStringList(List<String> lx) {
+        return writeList(lx, ByteBufWrapper::writeString);
+    }
+
+    public ByteBufWrapper<T> writeIntegerList(List<Integer> lx) {
+        return writeList(lx, ByteBufWrapper::writeInt);
+    }
+
+    public ByteBufWrapper<T> writeDoubleList(List<Double> lx) {
+        return writeList(lx, ByteBufWrapper::writeDouble);
+    }
+
+    public <XKey, XValue> ByteBufWrapper<T> writeMap(HashMap<XKey, XValue> map, BiConsumer<ByteBufWrapper<T>, XKey> keyWriter, BiConsumer<ByteBufWrapper<T>, XValue> valueWriter) {
+        writeInt(map.size());
+        for (Map.Entry<XKey, XValue> xv : map.entrySet()) {
+            keyWriter.accept(this, xv.getKey());
+            valueWriter.accept(this, xv.getValue());
+        }
+        return this;
+    }
+
+    public <XValue> ByteBufWrapper<T> writeStringKeyMap(HashMap<String, XValue> map, BiConsumer<ByteBufWrapper<T>, XValue> writer) {
+        writeMap(map, (buf, key) -> writeString(key), writer);
+        return this;
+    }
+
+    public ByteBufWrapper<T> writeUUID(UUID uid) {
+        ByteBufUtility.writeUUID(buf, uid);
+        return this;
+    }
+
+    public byte readByte() {
         return buf.readByte();
     }
 
-    public short readShort(){
+    public short readShort() {
         return buf.readShort();
     }
 
-    public int readInt(){
+    public int readInt() {
         return buf.readInt();
     }
 
-    public long readLong(){
+    public long readLong() {
         return buf.readLong();
     }
 
-    public float readFloat(){
+    public float readFloat() {
         return buf.readFloat();
     }
 
-    public double readDouble(){
+    public double readDouble() {
         return buf.readDouble();
     }
 
-    public String readString(){
+    public String readString() {
         return ByteBufUtility.readString(buf);
     }
 
+    public byte[] readByteArray() {
+        byte[] bx = new byte[readInt()];
+        buf.readBytes(bx);
+        return bx;
 
+    }
+
+    public <XT> List<XT> readList(Function<ByteBufWrapper<?>, XT> reader) {
+        List<XT> lt = new ArrayList<>();
+        int length = readInt();
+        for (int i = 0; i < length; i++)
+            lt.add(reader.apply(this));
+        return lt;
+    }
+
+    public <XKey, XValue> Map<XKey, XValue> readMap(Function<ByteBufWrapper<?>, XKey> keyReader, Function<ByteBufWrapper<?>, XValue> valueReader) {
+        HashMap<XKey, XValue> map = new HashMap<>();
+        int len = readInt();
+        for (int i = 0; i < len; i++) {
+            map.put(keyReader.apply(this), valueReader.apply(this));
+        }
+        return map;
+    }
+
+
+    public <XValue> Map<String, XValue> readStringKeyMap(Function<ByteBufWrapper<?>, XValue> valueReader) {
+        return readMap(ByteBufWrapper::readString, valueReader);
+    }
+
+
+    public <XValue> Map<Integer, XValue> readIntKeyMap(Function<ByteBufWrapper<?>, XValue> valueReader) {
+        return readMap(ByteBufWrapper::readInt, valueReader);
+    }
+
+
+    public <XValue> Map<Long, XValue> readLongMap(Function<ByteBufWrapper<?>, XValue> valueReader) {
+        return readMap(ByteBufWrapper::readLong, valueReader);
+    }
+
+
+    public UUID readUUID(){
+        return ByteBufUtility.readUUID(buf);
+    }
 
 }
