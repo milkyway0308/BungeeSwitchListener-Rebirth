@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id ("maven-publish")
+    id("maven-publish")
 }
 
 buildscript {
@@ -13,9 +13,17 @@ buildscript {
 group = "skywolf46"
 version = properties["version"] as String
 
+tasks {
+    processResources {
+        filesMatching(listOf("plugin.yml", "bungee.yml")) {
+            expand("version" to project.properties["version"])
+        }
+    }
+}
+
 repositories {
     mavenCentral()
-      maven("https://maven.pkg.github.com/milkyway0308/CommandAnnotation") {
+    maven("https://maven.pkg.github.com/milkyway0308/CommandAnnotation") {
         credentials {
             username = properties["gpr.user"] as String
             password = properties["gpr.key"] as String
@@ -43,13 +51,13 @@ publishing {
             }
         }
     }
-    publications{
-        create<MavenPublication>("jar"){
+    publications {
+        create<MavenPublication>("jar") {
             from(components["java"])
             groupId = "skywolf46"
             artifactId = "bsl"
             version = properties["version"] as String
-            pom{
+            pom {
                 url.set("https://github.com/milkyway0308/BungeeSwitchListener-Rebirth.git")
             }
         }

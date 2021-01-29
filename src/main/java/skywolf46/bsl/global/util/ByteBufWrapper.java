@@ -30,7 +30,7 @@ public class ByteBufWrapper<T> {
         return this;
     }
 
-    public ByteBufWrapper<T> writeBytes(ByteBufWrapper wp) {
+    public ByteBufWrapper<T> writeBytes(ByteBufWrapper<?> wp) {
         this.buf.writeBytes(wp.buf);
         return this;
     }
@@ -104,7 +104,7 @@ public class ByteBufWrapper<T> {
         return writeList(lx, ByteBufWrapper::writeDouble);
     }
 
-    public <XKey, XValue> ByteBufWrapper<T> writeMap(HashMap<XKey, XValue> map, BiConsumer<ByteBufWrapper<T>, XKey> keyWriter, BiConsumer<ByteBufWrapper<T>, XValue> valueWriter) {
+    public <XKey, XValue> ByteBufWrapper<T> writeMap(Map<XKey, XValue> map, BiConsumer<ByteBufWrapper<T>, XKey> keyWriter, BiConsumer<ByteBufWrapper<T>, XValue> valueWriter) {
         writeInt(map.size());
         for (Map.Entry<XKey, XValue> xv : map.entrySet()) {
             keyWriter.accept(this, xv.getKey());
@@ -113,14 +113,39 @@ public class ByteBufWrapper<T> {
         return this;
     }
 
-    public <XValue> ByteBufWrapper<T> writeStringKeyMap(HashMap<String, XValue> map, BiConsumer<ByteBufWrapper<T>, XValue> writer) {
+
+    public <XKey, XValue> ByteBufWrapper<T> writeMap(Class<XKey> keyClass, Class<XValue> valueClass, Map<XKey, XValue> map, BiConsumer<ByteBufWrapper<T>, XKey> keyWriter, BiConsumer<ByteBufWrapper<T>, XValue> valueWriter) {
+        return writeMap(map, keyWriter, valueWriter);
+    }
+
+    public <XValue> ByteBufWrapper<T> writeStringKeyMap(Map<String, XValue> map, BiConsumer<ByteBufWrapper<T>, XValue> writer) {
         writeMap(map, (buf, key) -> writeString(key), writer);
         return this;
     }
 
+
+    public <XValue> ByteBufWrapper<T> writeStringKeyMap(Class<XValue> valueClass, Map<String, XValue> map, BiConsumer<ByteBufWrapper<T>, XValue> writer) {
+        return writeStringKeyMap(map, writer);
+    }
+
+
     public ByteBufWrapper<T> writeUUID(UUID uid) {
         ByteBufUtility.writeUUID(buf, uid);
         return this;
+    }
+
+    public <OPT> ByteBufWrapper<T> writeOptional(OPT opt, BiConsumer<ByteBufWrapper<?>, OPT> cons) {
+        if (opt == null) {
+            writeBoolean(false);
+        } else {
+            writeBoolean(true);
+            cons.accept(this, opt);
+        }
+        return this;
+    }
+
+    public boolean readBoolean() {
+        return buf.readBoolean();
     }
 
     public byte readByte() {
@@ -151,6 +176,12 @@ public class ByteBufWrapper<T> {
         return ByteBufUtility.readString(buf);
     }
 
+    public <OPT> Optional<OPT> readOptional(Function<ByteBufWrapper<?>, OPT> funct) {
+        if (readBoolean())
+            return Optional.of(funct.apply(this));
+        return Optional.empty();
+    }
+
     public byte[] readByteArray() {
         byte[] bx = new byte[readInt()];
         buf.readBytes(bx);
@@ -175,7 +206,6 @@ public class ByteBufWrapper<T> {
         return map;
     }
 
-
     public <XValue> Map<String, XValue> readStringKeyMap(Function<ByteBufWrapper<?>, XValue> valueReader) {
         return readMap(ByteBufWrapper::readString, valueReader);
     }
@@ -191,7 +221,7 @@ public class ByteBufWrapper<T> {
     }
 
 
-    public UUID readUUID(){
+    public UUID readUUID() {
         return ByteBufUtility.readUUID(buf);
     }
 

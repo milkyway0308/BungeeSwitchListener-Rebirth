@@ -27,7 +27,7 @@ public class BukkitFakePlayerConnection {
         strap.group(group)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
-                .option(ChannelOption.SO_TIMEOUT, 6000)
+//                .option(ChannelOption.SO_TIMEOUT, 6000)
                 .handler(new BukkitInitializeHandler())
 
         ;

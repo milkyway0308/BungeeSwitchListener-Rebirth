@@ -90,7 +90,7 @@ public abstract class AbstractPacket {
         T read(ByteBuf buf);
     }
 
-    public abstract class PacketWrapperWriter<T extends AbstractPacket> implements PacketWriter<T> {
+    public static abstract class PacketWrapperWriter<T extends AbstractPacket> implements PacketWriter<T> {
         @Override
         public void write(T packet, ByteBuf buffer) {
             write(packet, new ByteBufWrapper<>(buffer, packet));
@@ -99,7 +99,7 @@ public abstract class AbstractPacket {
         public abstract void write(T Packet, ByteBufWrapper<T> wrapper);
     }
 
-    public abstract class PacketWrapperReader<T extends AbstractPacket> implements PacketReader<T> {
+    public static abstract class PacketWrapperReader<T extends AbstractPacket> implements PacketReader<T> {
         @Override
         public T read(ByteBuf buf) {
             return read(new ByteBufWrapper<>(buf, null));

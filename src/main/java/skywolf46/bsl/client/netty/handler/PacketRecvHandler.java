@@ -16,7 +16,7 @@ public class PacketRecvHandler extends ChannelInboundHandlerAdapter {
             BSLCoreAPI.writer().printError("Packet read error : Unknown packet id " + packetID);
             return;
         }
-        AbstractPacket.PacketReader pr = packet.reader();
+        AbstractPacket.PacketReader<?> pr = packet.reader();
         if (pr == null) {
             BSLCoreAPI.writer().printError("Packet read error : Packet type " + packet.getClass().getSimpleName() + " not supports read in side " + BSLCoreAPI.getSide());
             return;

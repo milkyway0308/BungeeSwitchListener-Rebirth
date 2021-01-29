@@ -21,8 +21,8 @@ public class ChannelKeepAliveThread extends Thread {
     public void run() {
         while (isEnabled.get()) {
             try {
-                chan.send(new PacketServerAlive());
                 Thread.sleep(2000L);
+                chan.send(new PacketServerAlive());
 //                System.out.println("Sending...");
             } catch (Exception ex) {
                 ex.printStackTrace();
