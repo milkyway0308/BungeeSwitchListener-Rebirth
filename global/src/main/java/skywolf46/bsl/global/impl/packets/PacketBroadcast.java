@@ -6,6 +6,8 @@ import skywolf46.bsl.global.BungeeVariables;
 import skywolf46.bsl.global.abstraction.packets.AbstractPacket;
 import skywolf46.bsl.global.api.BSLCoreAPI;
 
+import java.util.function.Consumer;
+
 public class PacketBroadcast extends AbstractPacket {
     private int port;
     private ByteBuf buffer;
@@ -16,6 +18,8 @@ public class PacketBroadcast extends AbstractPacket {
         buffer.writeInt(packet.getID());
         BSLCoreAPI.getPacket(packet.getID()).writer().write(packet, buffer);
     }
+
+  
 
     public PacketBroadcast(ByteBuf buf) {
         buf.markReaderIndex();

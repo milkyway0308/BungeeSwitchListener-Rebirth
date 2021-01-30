@@ -4,14 +4,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import skywolf46.bsl.global.abstraction.enums.Side;
 import skywolf46.bsl.global.util.ByteBufWrapper;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 public abstract class AbstractPacket {
-    private PacketWriter writer;
-    private PacketReader reader;
+    private PacketWriter<? extends AbstractPacket> writer;
+    private PacketReader<? extends AbstractPacket> reader;
     private List<BiConsumer<Channel, AbstractPacket>> listener = new ArrayList<>();
 
     public Side getSide() {
@@ -53,11 +52,11 @@ public abstract class AbstractPacket {
         register(writer);
     }
 
-    public PacketWriter<?> writer() {
-        return writer;
+    public <T extends AbstractPacket> PacketWriter<T> writer() {
+        return (PacketWriter<T>) writer;
     }
 
-    public PacketReader<?> reader() {
+    public PacketReader<? extends AbstractPacket> reader() {
         return reader;
     }
 
