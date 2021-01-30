@@ -26,13 +26,21 @@ public abstract class AbstractPacket {
         listener.add((BiConsumer<Channel, AbstractPacket>) listen);
     }
 
-
-    public void register(PacketWriter writer) {
+    public void register(PacketWrapperWriter<?> writer) {
         this.writer = writer;
     }
 
+    public void register(PacketWrapperReader<?> reader) {
+        this.reader = reader;
+    }
 
-    public void register(PacketReader reader) {
+    @Deprecated
+    public void register(PacketWriter<?> writer) {
+        this.writer = writer;
+    }
+
+    @Deprecated
+    public void register(PacketReader<?> reader) {
         this.reader = reader;
     }
 
@@ -45,11 +53,11 @@ public abstract class AbstractPacket {
         register(writer);
     }
 
-    public PacketWriter writer() {
+    public PacketWriter<?> writer() {
         return writer;
     }
 
-    public PacketReader reader() {
+    public PacketReader<?> reader() {
         return reader;
     }
 
