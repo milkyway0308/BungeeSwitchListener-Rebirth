@@ -1,7 +1,6 @@
 plugins {
     id("java")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 buildscript {
@@ -14,13 +13,6 @@ buildscript {
 group = "skywolf46"
 version = properties["version"] as String
 
-tasks {
-    processResources {
-        filesMatching(listOf("plugin.yml", "bungee.yml")) {
-            expand("version" to project.properties["version"])
-        }
-    }
-}
 
 repositories {
     mavenCentral()
@@ -32,16 +24,19 @@ repositories {
     }
 }
 
-
 dependencies {
-    compileOnly("skywolf46:commandannotation:2.0.6")
-    implementation(project(":global"))
-    implementation(project(":client"))
-    implementation(project(":server"))
+    compileOnly(project(":global"))
+//    implementation("skywolf46:commandannotation:2.0.6")
+    compileOnly(files("V:/API/Java/Minecraft/Bukkit/Spigot/Spigot 1.12.2.jar"))
+    compileOnly(files("O:\\Servers\\1.12.2 Bungeecord Server/BungeeCord.jar"))
+    testCompile("io.netty:netty-testsuite-http2:4.1.54.Final")
 }
+
+
+
 tasks {
-    shadowJar {
-        archiveClassifier.set("shaded")
+    jar {
+        archiveBaseName.set("BungeeSwitchListener-Server")
     }
 }
 
@@ -57,11 +52,10 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("shadowJar") {
+        create<MavenPublication>("jar") {
             from(components["java"])
-            artifact(tasks.shadowJar.get())
             groupId = "skywolf46"
-            artifactId = "bsl"
+            artifactId = "bsl.server"
             version = properties["version"] as String
             pom {
                 url.set("https://github.com/milkyway0308/BungeeSwitchListener-Rebirth.git")
@@ -69,3 +63,4 @@ publishing {
         }
     }
 }
+
