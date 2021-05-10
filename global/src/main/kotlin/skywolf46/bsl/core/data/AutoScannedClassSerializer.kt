@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier
 
 class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerializer<X> {
     private val fields = mutableListOf<OrderedClass>()
+    private val headers = mutableListOf<OrderedClass>()
     private lateinit var pairRange: IntRange
 
     init {
@@ -31,11 +32,21 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
     }
 
     override fun ByteBuf.writeBuffer(data: X) {
-        writeInt(pairRange.first).writeInt(pairRange.last)
-        for (x in fields) {
-            println(">>> Writing ${x.field.type}")
-            BSLCore.classLookup.lookUpValue(x.field.type)?.write(this, x.field.get(data)!!)
-                ?: throw IllegalStateException("Cannot parse ${x.field.type.name} : Serializer not exists")
+        val mark = writerIndex()
+        try {
+            writeInt(pairRange.first).writeInt(pairRange.last)
+            for (x in headers) {
+                println(">>> Writing ${x.field.type}")
+                BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data))
+
+            }
+            for (x in fields) {
+                println(">>> Writing ${x.field.type}")
+                BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data))
+            }
+        } catch (e: Throwable) {
+            writerIndex(mark)
+            throw e
         }
     }
 
@@ -44,7 +55,7 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
             throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
         }
         val const = cls.getConstructor().newInstance()
-        for (x in fields) {
+        for (x in headers.toMutableList().also { it.addAll(fields) }) {
             x.field.set(const,
                 BSLCore.classLookup.lookUpValue(x.field.type)?.read(this, onlyHeader)
                     ?: throw IllegalStateException("Cannot parse ${x.field.type.name} : Serializer not exists")
@@ -88,6 +99,7 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
             return
         println("> Scanning ${cls.name}")
         val lst = mutableListOf<OrderedClass>()
+        val lstHeader = mutableListOf<OrderedClass>()
         for (x in cls.declaredFields) {
             x.isAccessible = true
             if (Modifier.isFinal(x.modifiers)) {
@@ -95,12 +107,17 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
                 continue
             }
             println("> Registering field ${x.name} => ${x.type.name}")
-            lst.add(OrderedClass(cls,
+            val xi = OrderedClass(cls,
                 x,
                 false,
-                x.getDeclaredAnnotation(BSLHeader::class.java) != null))
+                x.getDeclaredAnnotation(BSLHeader::class.java) != null)
+            if (xi.isHeader)
+                lstHeader.add(xi)
+            else
+                lst.add(xi)
         }
         fields.addAll(0, lst)
+        headers.addAll(0, lstHeader)
         scanAll(cls.superclass)
     }
 }

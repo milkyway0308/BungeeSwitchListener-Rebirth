@@ -40,15 +40,11 @@ object BSLCore {
     }
 
     fun <X : Any> resolve(type: Class<X>): IByteBufSerializer<X> {
-        println("Resolving ${type.name}")
         var lup = classLookup.lookUpValue(type)
         if (lup == null) {
-            println("Adding scanned type")
-            println("Detected as ${type.asLookUp().toRange().first} ${type.asLookUp().toRange().last}")
             lup = AutoScannedClassSerializer(type as Class<Any>)
             classLookup.append(type.asLookUp(), lup)
         }
-        println("Found...CheckReversed: ${classLookup.lookUp(type.asLookUp().toRange())?.name}")
         return lup as IByteBufSerializer<X>
     }
 
