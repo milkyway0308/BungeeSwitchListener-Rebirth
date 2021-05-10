@@ -1,3 +1,0 @@
-name: BungeeSwitchListener
-main: skywolf46.bsl.server.BungeeSwitchListener
-version: ${version}

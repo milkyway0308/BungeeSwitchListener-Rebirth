@@ -1,0 +1,52 @@
+plugins {
+    id("java")
+    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
+    id("maven-publish")
+    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("skywolf46.wolfradle") version "1.1.2"
+}
+
+
+group = "skywolf46"
+version = properties["version"] as String
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    implementation(project(":global"))
+    implementation(project(":client"))
+    implementation(project(":server"))
+}
+tasks {
+    shadowJar {
+        archiveClassifier.set("shaded")
+    }
+    jar {
+        dependsOn(shadowJar)
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Reposilite"
+            url = uri(rootProject.properties["reposilite.release"] as String)
+            credentials {
+                username = rootProject.properties["reposilite.user"] as String
+                password = rootProject.properties["reposilite.token"] as String
+            }
+        }
+    }
+
+    publications {
+        create("jar", MavenPublication) {
+            groupId 'skywolf46'
+            artifactId "bsl"
+            version rootProject.properties['version'] as String
+            from components.java
+        }
+    }
+}

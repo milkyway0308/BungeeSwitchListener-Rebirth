@@ -1,3 +1,11 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = uri("http://dja.kr:55201/releases")
+        }
+        gradlePluginPortal()
+    }
+}
 include 'client'
 include 'global'
 include 'server'

@@ -1,0 +1,52 @@
+plugins {
+    id("java")
+    id 'org.jetbrains.kotlin.jvm'
+    id("maven-publish")
+    id("com.github.johnrengelman.shadow")
+    id("skywolf46.wolfradle")
+}
+
+
+group = "skywolf46"
+version = properties["version"] as String
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    bungeeApi()
+    wolfyUtil()
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+    testRuntime("org.junit.jupiter:junit-jupiter-params:5.7.1")
+    testRuntime("org.junit.platform:junit-platform-runner:1.7.1")
+    implementation group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
+}
+
+test{
+    useJUnitPlatform()
+}
+
+
+publishing {
+    repositories {
+        maven {
+            name = "Reposilite"
+            url = uri(rootProject.properties["reposilite.release"] as String)
+            credentials {
+                username = rootProject.properties["reposilite.user"] as String
+                password = rootProject.properties["reposilite.token"] as String
+            }
+        }
+    }
+
+    publications {
+        create("jar", MavenPublication) {
+            groupId 'skywolf46'
+            artifactId "bsl-${project.name}"
+            version rootProject.properties['version'] as String
+            from components.java
+        }
+    }
+}
