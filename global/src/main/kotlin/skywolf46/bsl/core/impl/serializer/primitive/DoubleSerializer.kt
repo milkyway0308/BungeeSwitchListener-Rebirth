@@ -12,4 +12,8 @@ class DoubleSerializer : IByteBufSerializer<Double> {
     override fun ByteBuf.readBuffer(readMode: ReadingMode): Double {
         return readDouble()
     }
+
+    override fun ByteBuf.readBuffer(orig: Double, readMode: ReadingMode) {
+        // Do nothing on primitive
+    }
 }

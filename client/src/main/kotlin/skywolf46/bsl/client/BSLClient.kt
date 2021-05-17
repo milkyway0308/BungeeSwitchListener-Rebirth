@@ -51,6 +51,13 @@ class BSLClient : JavaPlugin() {
                 x.kickPlayer("§bBSL - §cCritical \n§7System failure / Server will blocked until restored")
             }
         }
+        socket.onSuccess {
+            status = 3
+            log("§bBSL-Core §f| §fTry to verify self..")
+
+        }
         socket.retry()
     }
+
+
 }

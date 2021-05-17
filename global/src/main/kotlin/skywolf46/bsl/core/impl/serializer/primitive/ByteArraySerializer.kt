@@ -15,4 +15,8 @@ class ByteArraySerializer : IByteBufSerializer<ByteArray> {
             readBytes(this)
         }
     }
+
+    override fun ByteBuf.readBuffer(orig: ByteArray, readMode: ReadingMode) {
+        // Do nothing on primitive
+    }
 }

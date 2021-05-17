@@ -1,5 +1,5 @@
 package skywolf46.bsl.core.abstraction
 
-open class ResponsiblePacket : AbstractPacketBase() {
+open class ResponsiblePacket : AbstractPacketBase<ResponsiblePacket>() {
 
 }

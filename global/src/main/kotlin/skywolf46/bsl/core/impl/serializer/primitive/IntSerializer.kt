@@ -10,4 +10,8 @@ class IntSerializer : IByteBufSerializer<Int> {
     }
 
     override fun ByteBuf.readBuffer(readMode: ReadingMode): Int = readInt()
+
+    override fun ByteBuf.readBuffer(orig: Int, readMode: ReadingMode) {
+        // Do nothing on primitive
+    }
 }

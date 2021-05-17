@@ -10,4 +10,8 @@ class FloatSerializer : IByteBufSerializer<Float> {
     }
 
     override fun ByteBuf.readBuffer(readMode: ReadingMode): Float = readFloat()
+
+    override fun ByteBuf.readBuffer(orig: Float, readMode: ReadingMode) {
+        // Do nothing on primitive
+    }
 }

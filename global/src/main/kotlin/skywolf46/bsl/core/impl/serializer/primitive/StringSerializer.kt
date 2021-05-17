@@ -16,4 +16,8 @@ class StringSerializer : IByteBufSerializer<String> {
             return String(this)
         }
     }
+
+    override fun ByteBuf.readBuffer(orig: String, readMode: ReadingMode) {
+        // Do nothing on primitive
+    }
 }

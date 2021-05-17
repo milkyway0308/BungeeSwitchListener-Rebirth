@@ -24,6 +24,8 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
     private val serversPort = mutableMapOf<Int, BSLServerConnection>()
 
     init {
+        println("BSL-Host | Server is starting on port $port")
+        val time = System.currentTimeMillis()
         val bossGroup: EventLoopGroup = NioEventLoopGroup()
         val workerGroup: EventLoopGroup = NioEventLoopGroup()
         try {
@@ -42,8 +44,8 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
                     }
                 }).option(ChannelOption.SO_BACKLOG, 128)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
-            val f: ChannelFuture = b.bind(port).sync()
-//            f.channel().closeFuture().sync()
+            b.bind(port).sync()
+            println("BSL-Host | Hello, World! (Elapsed ${System.currentTimeMillis() - time}ms)")
         } finally {
             workerGroup.shutdownGracefully()
             bossGroup.shutdownGracefully()

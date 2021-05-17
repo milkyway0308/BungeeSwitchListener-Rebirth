@@ -1,0 +1,16 @@
+System Codes:
+  '':
+    Name: 'Admin'
+    Permission:
+      - ADMIN
+  '':
+    Name: 'Moderator'
+    Permission:
+      - RESOURCE_SET
+      - RESOURCE_GET
+      - OPEN_API
+  '':
+    Name: 'Info'
+    Permission:
+      - RESOURCE_GET
+      - OPEN_API

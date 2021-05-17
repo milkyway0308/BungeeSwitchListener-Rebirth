@@ -24,8 +24,14 @@ dependencies {
     implementation group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
 }
 
-test{
+test {
     useJUnitPlatform()
+}
+
+processResources {
+    filesMatching("system.properties") {
+        it.expand("version": parent.properties["version"].toString())
+    }
 }
 
 

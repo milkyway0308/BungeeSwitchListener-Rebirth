@@ -10,6 +10,9 @@ import skywolf46.bsl.core.listener
 import skywolf46.bsl.core.util.asLookUp
 
 abstract class AbstractPacketBase<X : AbstractPacketBase<X>> : IBSLPacket, IListenerAttachable {
+    lateinit var originalServer: IBSLServer
+        internal set
+
     @BSLHeader
     var header: PacketHeader<X>? = null
 

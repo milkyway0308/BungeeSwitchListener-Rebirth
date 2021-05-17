@@ -11,4 +11,8 @@ class ByteSerializer : IByteBufSerializer<Byte> {
 
     override fun ByteBuf.readBuffer(readMode: ReadingMode): Byte = readByte()
 
+    override fun ByteBuf.readBuffer(orig: Byte, readMode: ReadingMode) {
+        // Do nothing on primitive
+    }
+
 }
