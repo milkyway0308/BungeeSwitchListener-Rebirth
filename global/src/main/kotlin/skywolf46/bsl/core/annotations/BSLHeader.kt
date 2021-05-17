@@ -1,4 +1,4 @@
-package skywolf46.bsl.core.annotations.annotations
+package skywolf46.bsl.core.annotations
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)

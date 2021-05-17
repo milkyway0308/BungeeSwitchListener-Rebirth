@@ -3,7 +3,9 @@ package skywolf46.bsl.core.data
 import io.netty.buffer.ByteBuf
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IByteBufSerializer
-import skywolf46.bsl.core.annotations.annotations.BSLHeader
+import skywolf46.bsl.core.annotations.BSLExclude
+import skywolf46.bsl.core.annotations.BSLHeader
+import skywolf46.bsl.core.enums.ReadingMode
 import java.lang.IllegalStateException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -50,27 +52,57 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
         }
     }
 
-    override fun ByteBuf.readBuffer(onlyHeader: Boolean): X {
+    override fun ByteBuf.readBuffer(readMode: ReadingMode): X {
         if (pairRange.first != readInt() || pairRange.last != readInt()) {
             throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
         }
         val const = cls.getConstructor().newInstance()
-        for (x in headers.toMutableList().also { it.addAll(fields) }) {
+        for (x in when (readMode) {
+            ReadingMode.HEADER -> {
+                headers
+            }
+            ReadingMode.NON_HEADER -> {
+                fields
+            }
+            else -> headers.toMutableList().apply {
+                addAll(fields)
+            }
+        }) {
             x.field.set(const,
-                BSLCore.classLookup.lookUpValue(x.field.type)?.read(this, onlyHeader)
+                BSLCore.resolve(x.field.type).read(this, readMode)
                     ?: throw IllegalStateException("Cannot parse ${x.field.type.name} : Serializer not exists")
             )
         }
         return const as X
     }
 
+    override fun ByteBuf.readBuffer(orig: X, readMode: ReadingMode) {
+        if (pairRange.first != readInt() || pairRange.last != readInt()) {
+            throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
+        }
+        for (x in when (readMode) {
+            ReadingMode.HEADER -> {
+                headers
+            }
+            ReadingMode.NON_HEADER -> {
+                fields
+            }
+            else -> headers.toMutableList().apply {
+                addAll(fields)
+            }
+        }) {
+            x.field.set(orig,
+                BSLCore.resolve(x.field.type).read(this, readMode)
+                    ?: throw IllegalStateException("Cannot parse ${x.field.type.name} : Serializer not exists")
+            )
+        }
+    }
+
     class OrderedClass(val clsOriginal: Class<Any>, val field: Field, val isFinal: Boolean, val isHeader: Boolean) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
-
             other as OrderedClass
-
             if (clsOriginal != other.clsOriginal) return false
             if (isFinal != other.isFinal) return false
             if (isHeader != other.isHeader) return false
@@ -106,6 +138,9 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
                 println("Warning : Packet class ${cls.name} contains final parameter ${x.name}")
                 continue
             }
+            if (x.getDeclaredAnnotation(BSLExclude::class.java) != null) {
+                continue
+            }
             println("> Registering field ${x.name} => ${x.type.name}")
             val xi = OrderedClass(cls,
                 x,
@@ -120,4 +155,6 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
         headers.addAll(0, lstHeader)
         scanAll(cls.superclass)
     }
+
+
 }

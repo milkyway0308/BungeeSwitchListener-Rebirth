@@ -18,6 +18,7 @@ repositories {
 
 dependencies {
     bungeeApi()
+    spigotApi("1.7.10")
     kotlin()
 }
 

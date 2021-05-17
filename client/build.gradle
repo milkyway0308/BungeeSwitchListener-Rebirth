@@ -16,6 +16,9 @@ repositories {
 
 dependencies {
     kotlin()
+    spigotApi("1.12.2")
+    wolfyUtil()
+    compileOnly(project(":global"))
 }
 
 
