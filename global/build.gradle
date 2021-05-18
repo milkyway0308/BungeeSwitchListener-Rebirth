@@ -1,6 +1,7 @@
 plugins {
     id("java")
-    id 'org.jetbrains.kotlin.jvm'
+    id('org.jetbrains.kotlin.jvm') version "1.4.32"
+
     id("maven-publish")
     id("com.github.johnrengelman.shadow")
     id("skywolf46.wolfradle")
@@ -18,10 +19,13 @@ repositories {
 dependencies {
     bungeeApi()
     wolfyUtil()
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: '1.5.0'
+
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testRuntime("org.junit.jupiter:junit-jupiter-params:5.7.1")
     testRuntime("org.junit.platform:junit-platform-runner:1.7.1")
-    implementation group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
+    compileOnly group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
 }
 
 test {

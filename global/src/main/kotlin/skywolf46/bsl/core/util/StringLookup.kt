@@ -1,41 +1,41 @@
 package skywolf46.bsl.core.util
 
 import java.util.*
+import kotlin.collections.HashMap
 
 open class StringLookup<KEY : Any, VALUE : Any> {
-    private val map = mutableMapOf<IntRange, SafeLookup<KEY>>()
-    private val mapValue = mutableMapOf<IntRange, VALUE>()
+    private val map = HashMap<CoveredIntRange, SafeLookup<KEY>>()
+    private val mapValue = HashMap<CoveredIntRange, VALUE>()
 
     fun append(lookup: SafeLookup<KEY>) {
-        map[lookup.toRange()] = lookup
+        map[CoveredIntRange(lookup.toRange())] = lookup
     }
 
 
     fun append(lookup: SafeLookup<KEY>, value: VALUE) {
-        map[lookup.toRange()] = lookup
-        mapValue[lookup.toRange()] = value
+        map[CoveredIntRange(lookup.toRange())] = lookup
+        mapValue[CoveredIntRange(lookup.toRange())] = value
     }
 
 
     fun append(lookup: IntRange, value: VALUE) {
-//        map[lookup] = lookup
-        mapValue[lookup] = value
+        mapValue[CoveredIntRange(lookup)] = value
     }
 
     fun lookUp(hash: IntRange): KEY? {
-        return map[hash]?.data
+        return map[CoveredIntRange(hash)]?.data
     }
 
 
     fun lookUpValue(hash: IntRange): VALUE? {
-        println("Lookup..${hash.first} ${hash.last} => ${mapValue[hash]}")
-        return mapValue[hash]
+        return mapValue[CoveredIntRange(hash)]
     }
 
     fun lookUpValueOrDefault(key: IntRange, def: () -> VALUE): VALUE {
-        return mapValue[key] ?: run {
+        val cov = CoveredIntRange(key)
+        return mapValue[cov] ?: run {
             val x = def()
-            mapValue[key] = x
+            mapValue[cov] = x
             return@run x
         }
     }
@@ -84,9 +84,6 @@ open class StringLookup<KEY : Any, VALUE : Any> {
 fun <T : Any> T.asLookUp() = StringLookup.SafeLookup(javaClass.name, this)
 
 fun <T : Any> Class<T>.asLookUp(): StringLookup.SafeLookup<Class<T>> {
-    println("Looking for class ${name} : ${
-        StringLookup.SafeLookup(name, this).toRange().first
-    }~${StringLookup.SafeLookup(name, this).toRange().last}")
     return StringLookup.SafeLookup(name, this)
 }
 

@@ -7,4 +7,4 @@ System Name: 'Client Server'
 # Bungeecord IP / port.
 # BungeeSwitchListener connection with fake player connection to communicate.
 Bungeecord IP: 'localhost'
-Bungeecord Port: 25577
+Bungeecord Port: 57719

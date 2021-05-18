@@ -1,5 +1,18 @@
-Enable localhost-only connection: true
-# Bukkit connection validate code.
-# Please change after use.
-# WARNING: Bukkit and bungeecord's System identify code must have to equal.
-System Identify Code: 'BSL|DataIdentifier00'
+Server Port: 57719
+OpenAPI Only If not Localhost: true
+System Codes:
+  'BSL|AdminPermissi0n992719':
+    Name: 'Admin'
+    Permission:
+      - ADMIN
+  'BSL|ModeratorPermission299945':
+    Name: 'Moderator'
+    Permission:
+      - RESOURCE_SET
+      - RESOURCE_GET
+      - OPEN_API
+  'BSL|DataIdentifier00':
+    Name: 'Info'
+    Permission:
+      - RESOURCE_GET
+      - OPEN_API

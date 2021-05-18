@@ -54,7 +54,7 @@ public class AvailablePortFinder {
      * Returns the {@link Set} of currently available port numbers
      * ({@link Integer}).  This method is identical to
      * <code>getAvailablePorts(MIN_PORT_NUMBER, MAX_PORT_NUMBER)</code>.
-     *
+     * <p>
      * WARNING: this can take a very long time.
      */
     public static Set<Integer> getAvailablePorts() {
@@ -102,27 +102,12 @@ public class AvailablePortFinder {
             throw new IllegalArgumentException("Invalid start port: " + port);
         }
 
-        ServerSocket ss = null;
-        DatagramSocket ds = null;
-        try {
-            ss = new ServerSocket(port);
+        try (ServerSocket ss = new ServerSocket(port); DatagramSocket ds = new DatagramSocket(port)) {
             ss.setReuseAddress(true);
-            ds = new DatagramSocket(port);
             ds.setReuseAddress(true);
             return true;
-        } catch (IOException e) {
-        } finally {
-            if (ds != null) {
-                ds.close();
-            }
-
-            if (ss != null) {
-                try {
-                    ss.close();
-                } catch (IOException e) {
-                    /* should not be thrown */
-                }
-            }
+        } catch (IOException ignored) {
+            // Hello World
         }
 
         return false;
@@ -133,8 +118,8 @@ public class AvailablePortFinder {
      * between the specified port range.
      *
      * @throws IllegalArgumentException if port range is not between
-     * {@link #MIN_PORT_NUMBER} and {@link #MAX_PORT_NUMBER} or
-     * <code>fromPort</code> if greater than <code>toPort</code>.
+     *                                  {@link #MIN_PORT_NUMBER} and {@link #MAX_PORT_NUMBER} or
+     *                                  <code>fromPort</code> if greater than <code>toPort</code>.
      */
     public static Set<Integer> getAvailablePorts(int fromPort, int toPort) {
         if ((fromPort < MIN_PORT_NUMBER) || (toPort > MAX_PORT_NUMBER)
@@ -143,23 +128,13 @@ public class AvailablePortFinder {
                     + fromPort + " ~ " + toPort);
         }
 
-        Set<Integer> result = new TreeSet<Integer>();
+        Set<Integer> result = new TreeSet<>();
 
         for (int i = fromPort; i <= toPort; i++) {
-            ServerSocket s = null;
-
-            try {
-                s = new ServerSocket(i);
-                result.add(new Integer(i));
+            try(ServerSocket ignored = new ServerSocket(i)) {
+                result.add(i);
             } catch (IOException e) {
-            } finally {
-                if (s != null) {
-                    try {
-                        s.close();
-                    } catch (IOException e) {
-                        /* should not be thrown */
-                    }
-                }
+                // Hello World
             }
         }
 

@@ -1,7 +1,6 @@
-package skywolf46.bsl.core.impl.packets.client.security
+package skywolf46.bsl.core.impl.packet.security
 
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
-import skywolf46.bsl.core.annotations.BSLAfterRead
 import skywolf46.bsl.core.annotations.BSLBeforeWrite
 import skywolf46.bsl.core.annotations.BSLExclude
 import skywolf46.bsl.core.util.EncryptionUtility
@@ -10,15 +9,15 @@ import java.security.PublicKey
 
 class PacketIntroduceSelf(
     key: PublicKey?,
-    val serverName: String,
+    var serverName: String,
     password: String,
     var port: Int = -1,
 ) : AbstractPacketBase<PacketIntroduceSelf>() {
 
     private constructor() : this(null, "", "", -1)
 
-    var key: PublicKey? = null
-        private set
+    @BSLExclude
+    var key: PublicKey? = key
 
     private var passwordArr = password.toByteArray()
 
@@ -27,8 +26,10 @@ class PacketIntroduceSelf(
 
     @BSLBeforeWrite
     private fun encrypt() {
-        if (key != null)
+        if (key != null){
             passwordArr = EncryptionUtility.encrypt(passwordArr, key!!)
+            println("Key not null. Encrypt!")
+        }
     }
 
 }

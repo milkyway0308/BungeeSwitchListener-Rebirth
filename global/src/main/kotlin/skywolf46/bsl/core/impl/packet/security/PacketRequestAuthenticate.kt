@@ -1,4 +1,4 @@
-package skywolf46.bsl.core.impl.packets.server.security
+package skywolf46.bsl.core.impl.packet.security
 
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.annotations.BSLAfterRead
@@ -34,6 +34,7 @@ class PacketRequestAuthenticate : AbstractPacketBase<PacketRequestAuthenticate>(
 
     @BSLAfterRead
     fun checkRead() {
+        println("Key Array: ${keyArray.contentToString()}")
         public = KeyFactory.getInstance("RSA")
             .generatePublic(X509EncodedKeySpec(keyArray))
     }
@@ -41,5 +42,6 @@ class PacketRequestAuthenticate : AbstractPacketBase<PacketRequestAuthenticate>(
     @BSLBeforeWrite
     fun checkWrite() {
         keyArray = public.encoded
+        println("Key Array: ${keyArray.contentToString()}")
     }
 }

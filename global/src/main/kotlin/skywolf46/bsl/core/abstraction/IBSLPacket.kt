@@ -1,5 +1,7 @@
 package skywolf46.bsl.core.abstraction
 
-interface IBSLPacket : IListenerAttachable {
+import skywolf46.bsl.core.security.permissions.SecurityPermissions
 
+interface IBSLPacket : IListenerAttachable {
+    fun requirePermission(): SecurityPermissions
 }

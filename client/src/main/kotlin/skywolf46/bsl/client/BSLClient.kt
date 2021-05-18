@@ -10,6 +10,8 @@ import skywolf46.extrautility.util.log
 import skywolf46.extrautility.util.register
 import skywolf46.extrautility.util.schedule
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 class BSLClient : JavaPlugin() {
     companion object {
@@ -21,19 +23,26 @@ class BSLClient : JavaPlugin() {
             private set
         lateinit var socket: BSLServerSocket
             private set
+        lateinit var serverName: String
+            private set
         var status = 0
             private set
     }
 
     override fun onEnable() {
-        BSLCore.init()
-        with(File("config.yml")) {
-            if (!exists())
-                saveResource("config.yml", true)
+        BSLCore.init(getResource("system.properties"))
+        BSLCore.scanAll(file)
+        with(File("bungee/config.yml")) {
+            if (!exists()) {
+                parentFile.mkdirs()
+                createNewFile()
+                Files.copy(getResource("bukkit/config.yml"), toPath(), StandardCopyOption.REPLACE_EXISTING)
+            }
             val load = YamlConfiguration.loadConfiguration(this)
             systemVerify = load.getString("System Identify Code")
             ip = load.getString("Bungeecord IP")
             port = load.getInt("Bungeecord Port")
+            serverName = load.getString("System Name", "Unnamed Server")
         }
         BSLListener().register()
         socket = BSLServerSocket(ip = ip, port = port)
@@ -54,7 +63,6 @@ class BSLClient : JavaPlugin() {
         socket.onSuccess {
             status = 3
             log("§bBSL-Core §f| §fTry to verify self..")
-
         }
         socket.retry()
     }

@@ -5,67 +5,95 @@ import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IByteBufSerializer
 import skywolf46.bsl.core.annotations.BSLExclude
 import skywolf46.bsl.core.annotations.BSLHeader
-import skywolf46.bsl.core.enums.ReadingMode
+import skywolf46.bsl.core.enums.DataMode
+import skywolf46.bsl.core.util.ByteBufUtil
+import skywolf46.bsl.core.util.CoveredIntRange
+import skywolf46.bsl.core.util.asLookUp
 import java.lang.IllegalStateException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import kotlin.reflect.full.companionObjectInstance
 
 class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerializer<X> {
     private val fields = mutableListOf<OrderedClass>()
     private val headers = mutableListOf<OrderedClass>()
-    private lateinit var pairRange: IntRange
-
-    init {
-        println("Hello World! Starting ${cls.name}")
-        scanAll(cls as Class<Any>)
-        calculateCurrentHash()
-        println("Scan complete! ${fields.size} is in class ${cls.name}")
-    }
+    private var pairRange: IntRange? = null
 
 
     private fun calculateCurrentHash() {
-        var hashCode = 1
-        var hashCodeRev = 1
+        scanAll(cls as Class<Any>)
+        println("Class: ${cls.name}")
+        println("Size: ${fields}")
+        var hashCode = cls.name.hashCode()
+        var hashCodeRev = cls.name.hashCode()
         for (e in fields) {
-            hashCode = 31 * hashCode + e.hashCode()
-            hashCodeRev = 31 * hashCode + e.hashCodeRev()
+            hashCode = 31 * hashCode + e.hashCode() + e.field.name.hashCode()
+            hashCodeRev = 31 * hashCodeRev + e.hashCodeRev() + e.field.name.hashCode()
+            println("Code: ${hashCode} / Rev: ${hashCodeRev}")
+        }
+
+        for (e in headers) {
+            hashCode = 31 * hashCode + e.hashCode() + e.field.name.hashCode()
+            hashCodeRev = 31 * hashCodeRev + e.hashCodeRev() + e.field.name.hashCode()
+            println("Code: ${hashCode} / Rev: ${hashCodeRev}")
         }
         pairRange = hashCode..hashCodeRev
     }
 
-    override fun ByteBuf.writeBuffer(data: X) {
+    override fun ByteBuf.writePacketHeader(data: X) {
+        writeInt(pairRange!!.first).writeInt(pairRange!!.last)
+    }
+
+    override fun ByteBuf.writeBuffer(data: X, mode: DataMode) {
+        if (pairRange == null) {
+            calculateCurrentHash()
+        }
         val mark = writerIndex()
         try {
-            writeInt(pairRange.first).writeInt(pairRange.last)
-            for (x in headers) {
-                println(">>> Writing ${x.field.type}")
-                BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data))
-
+            when (mode) {
+                DataMode.HEADER -> {
+                    writePacketHeader(data)
+                    for (x in headers) {
+                        println("Writing Header ${x.field.name}")
+                        BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data), mode)
+                        println("Complete")
+                    }
+                }
+                DataMode.NON_HEADER -> {
+                    for (x in fields) {
+                        println("Writing ${x.field.name}")
+                        BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data), mode)
+                        println("Complete")
+                    }
+                }
             }
-            for (x in fields) {
-                println(">>> Writing ${x.field.type}")
-                BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data))
-            }
+            val mark = readerIndex()
+            println(ByteBufUtil.readAllBytes(this).contentToString())
+            readerIndex(mark)
         } catch (e: Throwable) {
             writerIndex(mark)
             throw e
         }
     }
 
-    override fun ByteBuf.readBuffer(readMode: ReadingMode): X {
-        if (pairRange.first != readInt() || pairRange.last != readInt()) {
-            throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
+    override fun ByteBuf.readBuffer(readMode: DataMode): X {
+        if (pairRange == null) {
+            calculateCurrentHash()
         }
-        val const = cls.getConstructor().newInstance()
+        val const = cls.getDeclaredConstructor()
+            .apply {
+                isAccessible = true
+            }
+            .newInstance()
         for (x in when (readMode) {
-            ReadingMode.HEADER -> {
+            DataMode.HEADER -> {
+                if (pairRange!!.first != readInt() || pairRange!!.last != readInt()) {
+                    throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
+                }
                 headers
             }
-            ReadingMode.NON_HEADER -> {
+            DataMode.NON_HEADER -> {
                 fields
-            }
-            else -> headers.toMutableList().apply {
-                addAll(fields)
             }
         }) {
             x.field.set(const,
@@ -76,19 +104,16 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
         return const as X
     }
 
-    override fun ByteBuf.readBuffer(orig: X, readMode: ReadingMode) {
-        if (pairRange.first != readInt() || pairRange.last != readInt()) {
-            throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
-        }
+    override fun ByteBuf.readBuffer(orig: X, readMode: DataMode) {
         for (x in when (readMode) {
-            ReadingMode.HEADER -> {
+            DataMode.HEADER -> {
+                if (pairRange!!.first != readInt() || pairRange!!.last != readInt()) {
+                    throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
+                }
                 headers
             }
-            ReadingMode.NON_HEADER -> {
+            DataMode.NON_HEADER -> {
                 fields
-            }
-            else -> headers.toMutableList().apply {
-                addAll(fields)
             }
         }) {
             x.field.set(orig,
@@ -111,17 +136,21 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
         }
 
         override fun hashCode(): Int {
-            var result = clsOriginal.hashCode()
+            var result = CoveredIntRange(clsOriginal.asLookUp().toRange()).hashCode()
+            println("Res01 -> $result")
             result = 31 * result + isFinal.hashCode()
             result = 31 * result + isHeader.hashCode()
+            println("ResFin -> $result")
             return result
         }
 
 
         fun hashCodeRev(): Int {
-            var result = clsOriginal.hashCode()
+            var result = isFinal.hashCode()
+            println("Res01Rev -> $result")
+            result = 31 * result + CoveredIntRange(clsOriginal.asLookUp().toRange()).hashCode()
             result = 31 * result + isHeader.hashCode()
-            result = 31 * result + isFinal.hashCode()
+            println("ResFinRev -> $result")
             return result
         }
     }
@@ -129,31 +158,38 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
     private fun scanAll(cls: Class<Any>) {
         if (cls == Any::class.java)
             return
-        println("> Scanning ${cls.name}")
+        println("Scanning ${cls.simpleName}")
         val lst = mutableListOf<OrderedClass>()
         val lstHeader = mutableListOf<OrderedClass>()
         for (x in cls.declaredFields) {
+            println("Current: ${x.name}")
+            if (x.name == "Companion" && cls.kotlin.companionObjectInstance != null)
+                continue
             x.isAccessible = true
             if (Modifier.isFinal(x.modifiers)) {
+                println("Skipping; Final.")
                 println("Warning : Packet class ${cls.name} contains final parameter ${x.name}")
                 continue
             }
             if (x.getDeclaredAnnotation(BSLExclude::class.java) != null) {
+                println("Skipping; BSLExclude.")
                 continue
             }
-            println("> Registering field ${x.name} => ${x.type.name}")
             val xi = OrderedClass(cls,
                 x,
                 false,
                 x.getDeclaredAnnotation(BSLHeader::class.java) != null)
+            println("Finally: ${xi.field.name} is ${if (xi.isHeader) "Header" else "Non-Header"}")
             if (xi.isHeader)
                 lstHeader.add(xi)
             else
                 lst.add(xi)
+            BSLCore.resolve(xi.field.type)
         }
         fields.addAll(0, lst)
         headers.addAll(0, lstHeader)
-        scanAll(cls.superclass)
+        if (cls.superclass != null)
+            scanAll(cls.superclass)
     }
 
 
