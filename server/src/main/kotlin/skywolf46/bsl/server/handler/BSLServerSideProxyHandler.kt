@@ -13,10 +13,15 @@ import skywolf46.bsl.core.impl.packet.minecraft.packet.PacketBroadcastAll
 import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
+import skywolf46.bsl.core.impl.packet.sync.PacketRequestSynchronize
 import skywolf46.bsl.server.BungeeSwitchListener
+import java.util.concurrent.atomic.AtomicLong
 
 @BSLSideOnly(BSLSide.PROXY)
 object BSLServerSideProxyHandler {
+    private val syncTimestamp = AtomicLong()
+    private val syncRequested = mutableMapOf<Long, () -> Unit>()
+
     @BSLHandler
     fun PacketReplied.onResponse() {
         unwrap()
@@ -56,5 +61,11 @@ object BSLServerSideProxyHandler {
             println("BSL-Host | Client ${header.server.address()} identified as server name $serverName, but permission rejected. Register as temporary(OpenAPI) client.")
             header.response(PacketAuthenticateResult(false, ""))
         }
+    }
+
+    @BSLHandler
+    fun PacketRequestSynchronize.onServerSync() {
+        val currentRequest = syncTimestamp.incrementAndGet()
+
     }
 }
