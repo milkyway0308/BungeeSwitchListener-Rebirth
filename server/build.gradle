@@ -4,6 +4,7 @@ plugins {
     id("maven-publish")
     id("com.github.johnrengelman.shadow")
     id("skywolf46.wolfradle")
+    id("org.sonarqube")
 }
 
 
@@ -43,5 +44,13 @@ publishing {
             version rootProject.properties['version'] as String
             from components.java
         }
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "milkyway0308_BungeeSwitchListener-Rebirth"
+        property "sonar.organization", "milkyway0308"
+        property "sonar.host.url", "https://sonarcloud.io"
     }
 }
