@@ -21,12 +21,12 @@ dependencies {
     wolfyUtil()
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: '1.5.0'
-
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.7.1")
-    testRuntime("org.junit.jupiter:junit-jupiter-params:5.7.1")
-    testRuntime("org.junit.platform:junit-platform-runner:1.7.1")
     compileOnly group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
-    testRuntime group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
+
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
+    testImplementation("org.junit.platform:junit-platform-runner:1.7.1")
+    testImplementation group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
 }
 
 test {
@@ -46,8 +46,8 @@ publishing {
             name = "Reposilite"
             url = uri(rootProject.properties["reposilite.release"] as String)
             credentials {
-                username = rootProject.properties["reposilite.user"] as String
-                password = rootProject.properties["reposilite.token"] as String
+                username = (rootProject.properties["reposilite.user"] ?: "") as String
+                password = (rootProject.properties["reposilite.token"] ?: "") as String
             }
         }
     }

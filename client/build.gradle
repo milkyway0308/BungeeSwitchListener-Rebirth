@@ -29,8 +29,8 @@ publishing {
             name = "Reposilite"
             url = uri(rootProject.properties["reposilite.release"] as String)
             credentials {
-                username = rootProject.properties["reposilite.user"] as String
-                password = rootProject.properties["reposilite.token"] as String
+                username = (rootProject.properties["reposilite.user"] ?: "") as String
+                password = (rootProject.properties["reposilite.token"] ?: "") as String
             }
         }
     }
