@@ -8,16 +8,13 @@ import org.junit.Test
 import org.junit.runners.MethodSorters
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IByteBufSerializer
+import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.global.test.impl.packet.TestPacket
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class BufferReadTest {
-    val sharedBuffer = buffer()
-
-    private fun buffer(): ByteBuf {
-        return Unpooled.buffer()
-    }
+    val sharedBuffer = Unpooled.buffer()
 
     @Before
     fun init() {
@@ -30,7 +27,7 @@ class BufferReadTest {
         val packetToWrite = TestPacket()
         packetToWrite.x3VariableInner.text = "Test!"
         val writer: IByteBufSerializer<TestPacket> = BSLCore.resolve(packetToWrite.javaClass)
-        writer.write(sharedBuffer, packetToWrite)
+        writer.write(sharedBuffer, packetToWrite, DataMode.HEADER)
         println(">> Packet write complete : Buffer has ${sharedBuffer.readableBytes()}")
     }
 
@@ -38,7 +35,7 @@ class BufferReadTest {
     fun test2ReadObjectFromBuffer() {
         test1OnWriteObjectToBuffer()
         val reader = BSLCore.resolve(TestPacket::class.java)
-        reader.read(sharedBuffer, false).validateEquals()
+        reader.read(sharedBuffer, DataMode.HEADER).validateEquals()
     }
 
     @Test
@@ -46,7 +43,7 @@ class BufferReadTest {
         val packetToWrite = TestPacket()
         packetToWrite.changeHeaders()
         val writer: IByteBufSerializer<TestPacket> = BSLCore.resolve(packetToWrite.javaClass)
-        writer.write(sharedBuffer, packetToWrite)
+        writer.write(sharedBuffer, packetToWrite, DataMode.HEADER)
         println(">> Packet write complete : Buffer has ${sharedBuffer.readableBytes()}")
 
     }
@@ -55,6 +52,6 @@ class BufferReadTest {
     fun test4ReadHeadersOnly() {
         test3WriteHeaderOnly()
         val reader = BSLCore.resolve(TestPacket::class.java)
-        reader.read(sharedBuffer, true).validateHeaderEquals()
+        reader.read(sharedBuffer, DataMode.HEADER).validateHeaderEquals()
     }
 }

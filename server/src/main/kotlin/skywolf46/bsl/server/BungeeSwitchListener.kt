@@ -12,9 +12,11 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 
-class BSLServer : Plugin() {
-    var port = 44019
-    val permissionMap = mutableMapOf<String, Pair<String, List<SecurityPermissions>>>()
+class BungeeSwitchListener : Plugin() {
+    companion object {
+        var port = 44019
+        val permissionMap = mutableMapOf<String, Pair<String, List<SecurityPermissions>>>()
+    }
 
     override fun onEnable() {
         BSLCore.isServer = true
@@ -28,7 +30,7 @@ class BSLServer : Plugin() {
             }
             val configuration: Configuration =
                 ConfigurationProvider.getProvider(YamlConfiguration::class.java).load(this)
-            port = configuration.getInt("Server Port", 57719)
+            port = configuration.getInt("Server Port", port)
             if (configuration.getSection("System Codes") != null) {
                 val sector = configuration.getSection("System Codes")
                 for (x in sector.keys) {
@@ -44,11 +46,11 @@ class BSLServer : Plugin() {
                         }
                     }
                     permissionMap[x] = permSection.getString("Name") to permissions
-                    println("BSLServer | Registered permission ${permSection.getString("Name")} to $permissions")
+                    println("BSL-Host | Registered permission ${permSection.getString("Name")} to $permissions")
                 }
             }
             BSLServerHost(port)
-            println("BSL | Host server starting on $port")
+            println("BSL-Host | Host server starting on $port")
         }
     }
 

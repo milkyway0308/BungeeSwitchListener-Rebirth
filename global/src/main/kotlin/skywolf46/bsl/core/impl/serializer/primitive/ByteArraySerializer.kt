@@ -8,7 +8,6 @@ class ByteArraySerializer : IByteBufSerializer<ByteArray> {
     override fun ByteBuf.writeBuffer(data: ByteArray, mode: DataMode) {
         writeInt(data.size)
         writeBytes(data)
-        println("Written size: ${data.size}")
     }
 
     override fun ByteBuf.readBuffer(readMode: DataMode): ByteArray {

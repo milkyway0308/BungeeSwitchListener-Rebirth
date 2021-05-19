@@ -11,7 +11,9 @@ import skywolf46.bsl.core.impl.packet.PacketLogToServer
 import skywolf46.bsl.core.impl.packet.PacketReplied
 import skywolf46.bsl.core.impl.packet.minecraft.packet.PacketBroadcastAll
 import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
+import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
+import skywolf46.bsl.server.BungeeSwitchListener
 
 @BSLSideOnly(BSLSide.PROXY)
 object BSLServerSideProxyHandler {
@@ -42,6 +44,13 @@ object BSLServerSideProxyHandler {
     fun PacketIntroduceSelf.onPacket() {
         val conn = header.server as BSLServerConnection
         val pass = getPassword(conn.keypair.second)
-        println("Hello, World! Password checked as $pass")
+        val perm = BungeeSwitchListener.permissionMap[pass]
+        if (perm != null) {
+            conn.currentPermission.clear()
+            conn.currentPermission.addAll(perm.second)
+            header.response(PacketAuthenticateResult(true, perm.first))
+        } else {
+            header.response(PacketAuthenticateResult(false, ""))
+        }
     }
 }

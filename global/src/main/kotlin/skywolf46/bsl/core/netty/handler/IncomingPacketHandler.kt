@@ -22,12 +22,6 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
             System.err.println("BSL-Core | Cannot deserialize packet : Packet corrupted (Header < 8 byte)")
             return
         }
-
-        println("Incoming ${msg.readableBytes()} bytes")
-
-        val mark = msg.readerIndex()
-        println(ByteBufUtil.readAllBytes(msg).contentToString())
-        msg.readerIndex(mark)
         val range = msg.readInt()..msg.readInt()
         // Deserialization
         val lup = BSLCore.classLookup.lookUpValue(range)
@@ -74,7 +68,6 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
 
         pac.listen(ListenerType.RECEIVE)
         val handlers = BSLCore.handlerList(pac.javaClass)
-        println("Handlers: ${handlers}")
         if (handlers.isNotEmpty()) {
             lup.read(pac, msg, DataMode.NON_HEADER)
             for (x in handlers) {

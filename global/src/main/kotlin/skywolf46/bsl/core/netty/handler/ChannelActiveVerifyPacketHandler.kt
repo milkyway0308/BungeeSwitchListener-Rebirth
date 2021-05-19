@@ -8,7 +8,7 @@ import skywolf46.bsl.core.impl.BSLServerHost
 class ChannelActiveVerifyPacketHandler : ChannelInboundHandlerAdapter() {
     override fun channelActive(ctx: ChannelHandlerContext) {
         ctx.pipeline().remove(this)
-        println("BSLCore | New connection request from ${ctx.channel().localAddress()}. Requesting authorize..")
+        println("BSL-Host | New connection request from ${ctx.channel().localAddress()}. Requesting authorize..")
         BSLServerHost.host?.addServerTemporary(BSLServerConnection(ctx.channel()))
     }
 }

@@ -1,7 +1,7 @@
 package skywolf46.bsl.client.handler
 
 import org.bukkit.Bukkit
-import skywolf46.bsl.client.BSLClient
+import skywolf46.bsl.client.BungeeSwitchListener
 import skywolf46.bsl.core.annotations.BSLHandler
 import skywolf46.bsl.core.annotations.BSLSideOnly
 import skywolf46.bsl.core.enums.BSLSide
@@ -14,8 +14,7 @@ import skywolf46.extrautility.util.log
 object BSLVerifyHandler {
     @BSLHandler
     fun PacketRequestAuthenticate.onRequestAuthenticate() {
-        println("Requested! Sending..")
-        header.server.send(PacketIntroduceSelf(public, BSLClient.serverName, BSLClient.systemVerify, Bukkit.getPort()))
+        header.server.send(PacketIntroduceSelf(public, BungeeSwitchListener.serverName, BungeeSwitchListener.systemVerify, Bukkit.getPort()))
     }
 
     @BSLHandler

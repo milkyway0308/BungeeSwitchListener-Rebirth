@@ -22,20 +22,16 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
 
     private fun calculateCurrentHash() {
         scanAll(cls as Class<Any>)
-        println("Class: ${cls.name}")
-        println("Size: ${fields}")
         var hashCode = cls.name.hashCode()
         var hashCodeRev = cls.name.hashCode()
         for (e in fields) {
             hashCode = 31 * hashCode + e.hashCode() + e.field.name.hashCode()
             hashCodeRev = 31 * hashCodeRev + e.hashCodeRev() + e.field.name.hashCode()
-            println("Code: ${hashCode} / Rev: ${hashCodeRev}")
         }
 
         for (e in headers) {
             hashCode = 31 * hashCode + e.hashCode() + e.field.name.hashCode()
             hashCodeRev = 31 * hashCodeRev + e.hashCodeRev() + e.field.name.hashCode()
-            println("Code: ${hashCode} / Rev: ${hashCodeRev}")
         }
         pairRange = hashCode..hashCodeRev
     }
@@ -54,22 +50,15 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
                 DataMode.HEADER -> {
                     writePacketHeader(data)
                     for (x in headers) {
-                        println("Writing Header ${x.field.name}")
                         BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data), mode)
-                        println("Complete")
                     }
                 }
                 DataMode.NON_HEADER -> {
                     for (x in fields) {
-                        println("Writing ${x.field.name}")
                         BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data), mode)
-                        println("Complete")
                     }
                 }
             }
-            val mark = readerIndex()
-            println(ByteBufUtil.readAllBytes(this).contentToString())
-            readerIndex(mark)
         } catch (e: Throwable) {
             writerIndex(mark)
             throw e
@@ -131,26 +120,21 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
             if (clsOriginal != other.clsOriginal) return false
             if (isFinal != other.isFinal) return false
             if (isHeader != other.isHeader) return false
-
             return true
         }
 
         override fun hashCode(): Int {
             var result = CoveredIntRange(clsOriginal.asLookUp().toRange()).hashCode()
-            println("Res01 -> $result")
             result = 31 * result + isFinal.hashCode()
             result = 31 * result + isHeader.hashCode()
-            println("ResFin -> $result")
             return result
         }
 
 
         fun hashCodeRev(): Int {
             var result = isFinal.hashCode()
-            println("Res01Rev -> $result")
             result = 31 * result + CoveredIntRange(clsOriginal.asLookUp().toRange()).hashCode()
             result = 31 * result + isHeader.hashCode()
-            println("ResFinRev -> $result")
             return result
         }
     }
@@ -158,28 +142,23 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
     private fun scanAll(cls: Class<Any>) {
         if (cls == Any::class.java)
             return
-        println("Scanning ${cls.simpleName}")
         val lst = mutableListOf<OrderedClass>()
         val lstHeader = mutableListOf<OrderedClass>()
         for (x in cls.declaredFields) {
-            println("Current: ${x.name}")
             if (x.name == "Companion" && cls.kotlin.companionObjectInstance != null)
                 continue
             x.isAccessible = true
             if (Modifier.isFinal(x.modifiers)) {
-                println("Skipping; Final.")
                 println("Warning : Packet class ${cls.name} contains final parameter ${x.name}")
                 continue
             }
             if (x.getDeclaredAnnotation(BSLExclude::class.java) != null) {
-                println("Skipping; BSLExclude.")
                 continue
             }
             val xi = OrderedClass(cls,
                 x,
                 false,
                 x.getDeclaredAnnotation(BSLHeader::class.java) != null)
-            println("Finally: ${xi.field.name} is ${if (xi.isHeader) "Header" else "Non-Header"}")
             if (xi.isHeader)
                 lstHeader.add(xi)
             else

@@ -28,7 +28,6 @@ class PacketIntroduceSelf(
     private fun encrypt() {
         if (key != null){
             passwordArr = EncryptionUtility.encrypt(passwordArr, key!!)
-            println("Key not null. Encrypt!")
         }
     }
 

@@ -47,7 +47,6 @@ object BSLCore {
     }
 
     fun <X : Any> resolve(type: Class<X>): IByteBufSerializer<X> {
-        println("Resolving ${type.name}")
         var lup = classLookup.lookUpValue(type)
         if (lup == null) {
             lup = AutoScannedClassSerializer(type as Class<Any>)
@@ -58,7 +57,6 @@ object BSLCore {
 
     fun register(serializer: IByteBufSerializer<*>, vararg cls: Class<*>) {
         for (c in cls) {
-            println("Registering ${c.name} -> ${c.asLookUp().toRange()}")
             classLookup.append(c.asLookUp().toRange(), serializer as IByteBufSerializer<Any>)
         }
     }
@@ -66,8 +64,8 @@ object BSLCore {
     fun init(stream: InputStream = javaClass.getResourceAsStream("system.properties")) {
         val prop = Properties()
         prop.load(stream)
-        println("BSLCore | ...BSL version ${prop["version"]}")
-        println("BSLCore | Initializing default serializers")
+        println("BSL-Core | ...BSL version ${prop["version"]}")
+        println("BSL-Core | Initializing default serializers")
         register(IntSerializer(), Int::class.java, Int::class.javaPrimitiveType!!)
         register(DoubleSerializer(), Double::class.java, Double::class.javaPrimitiveType!!)
         register(FloatSerializer(), Float::class.java, Float::class.javaPrimitiveType!!)
@@ -76,7 +74,7 @@ object BSLCore {
         register(BooleanSerializer(), Boolean::class.java, Boolean::class.javaPrimitiveType!!)
         register(StringSerializer(), String::class.java)
         register(ByteArraySerializer(), ByteArray::class.java)
-        println("BSLCore | Initializing default packets")
+        println("BSL-Core | Initializing default packets")
         resolve(PacketBroadcastAll::class.java)
         resolve(PacketRequireProxy::class.java)
         resolve(PacketLogToServer::class.java)
@@ -111,7 +109,6 @@ object BSLCore {
         val jf = JarFile(file)
         for (x in jf.entries()) {
             if (x.name.endsWith(".class")) {
-                println(x.name)
                 try {
                     val cls = Class.forName(x.name.replace("/", ".").let {
                         return@let it.substring(0, it.length - 6)
@@ -133,11 +130,9 @@ object BSLCore {
         if (cls.getAnnotation(BSLSideOnly::class.java) != null) {
             val sideAnnotation = cls.getAnnotation(BSLSideOnly::class.java)
             if ((sideAnnotation.side == BSLSide.PROXY) != isServer) {
-                println("Ignoring ${cls.name} : Side incorrect")
                 return
             }
         }
-        println("Current: ${cls.name}")
         if (AbstractPacketBase::class.java.isAssignableFrom(cls)) {
             resolve(cls)
         }
@@ -160,7 +155,7 @@ object BSLCore {
                 }
                 if (mtd.getAnnotation(BSLHandler::class.java) != null) {
                     if (mtd.parameters.size != 1) {
-                        System.err.println("BSLCore | Handler ${mtd.name} in ${cls.name} requires 1 parameter")
+                        System.err.println("BSL-Core | Handler ${mtd.name} in ${cls.name} requires 1 parameter")
                         continue
                     }
                     mtd.isAccessible = true
@@ -173,7 +168,6 @@ object BSLCore {
     }
 
     private fun scanObjectWithoutReject(obj: Any) {
-        println("Invoking on ${obj.javaClass.name}")
         for (mtd in obj.javaClass.declaredMethods) {
             if (mtd.getAnnotation(BSLSideOnly::class.java) != null) {
                 val sideAnnotation = mtd.getAnnotation(BSLSideOnly::class.java)
@@ -182,7 +176,6 @@ object BSLCore {
                 }
             }
             if (mtd.getAnnotation(BSLHandler::class.java) != null) {
-                println("register!")
                 if (mtd.parameters.size != 1) {
                     System.err.println("BSLCore | Handler ${mtd.name} in ${obj.javaClass.name} requires 1 parameter")
                     continue

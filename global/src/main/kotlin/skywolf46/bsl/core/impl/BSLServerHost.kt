@@ -119,7 +119,7 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
         serverReversed.remove((server as BSLServerConnection).chan)
         servers.remove(server.serverName)
         serversPort.remove(server.port)
-        println("BSLCore | Server ${server.serverName}(${
+        println("BSL-Host | Server ${server.serverName}(${
             if (server.port != -1) "localhost:${server.port}" else server.chan.localAddress().toString()
         }) disconnected")
     }

@@ -34,7 +34,6 @@ class PacketRequestAuthenticate : AbstractPacketBase<PacketRequestAuthenticate>(
 
     @BSLAfterRead
     fun checkRead() {
-        println("Key Array: ${keyArray.contentToString()}")
         public = KeyFactory.getInstance("RSA")
             .generatePublic(X509EncodedKeySpec(keyArray))
     }
@@ -42,6 +41,5 @@ class PacketRequestAuthenticate : AbstractPacketBase<PacketRequestAuthenticate>(
     @BSLBeforeWrite
     fun checkWrite() {
         keyArray = public.encoded
-        println("Key Array: ${keyArray.contentToString()}")
     }
 }

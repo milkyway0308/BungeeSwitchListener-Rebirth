@@ -2,14 +2,13 @@ package skywolf46.bsl.client.listener
 
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerLoginEvent
-import skywolf46.bsl.client.BSLClient
+import skywolf46.bsl.client.BungeeSwitchListener
 
 class BSLListener : Listener {
     @EventHandler
     fun PlayerLoginEvent.onEvent() {
-        when (BSLClient.status) {
+        when (BungeeSwitchListener.status) {
             0 -> {
                 kickMessage = "§eBSL-Core\nBSL is enabling..."
                 result = PlayerLoginEvent.Result.KICK_WHITELIST

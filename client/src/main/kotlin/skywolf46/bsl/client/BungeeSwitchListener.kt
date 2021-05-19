@@ -13,7 +13,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-class BSLClient : JavaPlugin() {
+class BungeeSwitchListener : JavaPlugin() {
     companion object {
         lateinit var systemVerify: String
             private set
@@ -32,7 +32,7 @@ class BSLClient : JavaPlugin() {
     override fun onEnable() {
         BSLCore.init(getResource("system.properties"))
         BSLCore.scanAll(file)
-        with(File("bungee/config.yml")) {
+        with(File(dataFolder, "config.yml")) {
             if (!exists()) {
                 parentFile.mkdirs()
                 createNewFile()
