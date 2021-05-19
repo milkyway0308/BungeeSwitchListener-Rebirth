@@ -7,6 +7,7 @@ import skywolf46.bsl.core.abstraction.IBSLServer
 import skywolf46.bsl.core.impl.packet.security.PacketRequestAuthenticate
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import java.net.InetSocketAddress
+import java.net.SocketAddress
 import java.security.PrivateKey
 import java.security.PublicKey
 
@@ -41,9 +42,13 @@ class BSLServerConnection(internal val chan: Channel) : IBSLServer {
         }
     }
 
+    override fun address(): SocketAddress {
+        return chan.remoteAddress()
+    }
+
     override fun isLocalHost(): Boolean {
         if (BSLCore.isServer)
-            return (chan.localAddress() as InetSocketAddress).address.isLoopbackAddress
+            return (chan.remoteAddress() as InetSocketAddress).address.isLoopbackAddress
         return false
     }
 }

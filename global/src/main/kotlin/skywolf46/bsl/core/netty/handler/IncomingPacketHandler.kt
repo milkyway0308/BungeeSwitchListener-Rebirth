@@ -69,6 +69,10 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
         pac.listen(ListenerType.RECEIVE)
         val handlers = BSLCore.handlerList(pac.javaClass)
         if (handlers.isNotEmpty()) {
+            if (pac is AbstractPacketBase<*> && !pac.callHandle) {
+                msg.release()
+                return
+            }
             lup.read(pac, msg, DataMode.NON_HEADER)
             for (x in handlers) {
                 x.data.invoke(pac)

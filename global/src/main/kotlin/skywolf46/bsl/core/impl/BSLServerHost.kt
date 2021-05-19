@@ -15,6 +15,7 @@ import skywolf46.bsl.core.netty.handler.ErrorPrintingHandler
 import skywolf46.bsl.core.netty.handler.IncomingPacketHandler
 import skywolf46.bsl.core.netty.handler.OutgoingPacketHandler
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
+import java.net.SocketAddress
 
 /**
  * BSL Host server
@@ -90,6 +91,10 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
     // Always admin
     override fun hasPermission(permission: SecurityPermissions): Boolean {
         return true
+    }
+
+    override fun address(): SocketAddress {
+        throw java.lang.IllegalStateException("Unsupported Operation")
     }
 
     fun fromPort(targetPort: Int): IBSLServer? {

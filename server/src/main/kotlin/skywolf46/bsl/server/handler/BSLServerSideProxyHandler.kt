@@ -37,7 +37,7 @@ object BSLServerSideProxyHandler {
 
     @BSLHandler
     fun PacketLogToServer.onPacket() {
-        BungeeCord.getInstance().console.sendMessage(TextComponent("§eBSL - [${header.server.getName()}] | $msg"))
+        BungeeCord.getInstance().console.sendMessage(TextComponent("§eBSL-[${header.server.getName()}] | $msg"))
     }
 
     @BSLHandler
@@ -46,10 +46,14 @@ object BSLServerSideProxyHandler {
         val pass = getPassword(conn.keypair.second)
         val perm = BungeeSwitchListener.permissionMap[pass]
         if (perm != null) {
+            println("BSL-Host | Client ${header.server.address()} identified as server name $serverName(Port $port) / Permission level ${perm.first}")
+            BSLServerHost.host!!.addServer(serverName, header.server as BSLServerConnection)
+            BSLServerHost.host!!.addServer(port, header.server as BSLServerConnection)
             conn.currentPermission.clear()
             conn.currentPermission.addAll(perm.second)
             header.response(PacketAuthenticateResult(true, perm.first))
         } else {
+            println("BSL-Host | Client ${header.server.address()} identified as server name $serverName, but permission rejected. Register as temporary(OpenAPI) client.")
             header.response(PacketAuthenticateResult(false, ""))
         }
     }

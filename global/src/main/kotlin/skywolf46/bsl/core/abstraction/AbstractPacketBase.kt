@@ -1,6 +1,7 @@
 package skywolf46.bsl.core.abstraction
 
 import skywolf46.bsl.core.BSLCore
+import skywolf46.bsl.core.annotations.BSLExclude
 import skywolf46.bsl.core.annotations.BSLHeader
 import skywolf46.bsl.core.data.CancellableData
 import skywolf46.bsl.core.data.PacketHeader
@@ -11,6 +12,8 @@ import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import skywolf46.bsl.core.util.asLookUp
 
 abstract class AbstractPacketBase<X : AbstractPacketBase<X>> : IBSLPacket, IListenerAttachable {
+    @BSLExclude
+    var callHandle = true
 
     @BSLHeader
     var header: PacketHeader<X> = PacketHeader()
@@ -25,5 +28,11 @@ abstract class AbstractPacketBase<X : AbstractPacketBase<X>> : IBSLPacket, IList
 
     override fun requirePermission(): SecurityPermissions {
         return SecurityPermissions.OPEN_API
+    }
+
+    fun callHandler() {
+        BSLCore.handlerList(javaClass)?.forEach {
+            it.data.invoke(this)
+        }
     }
 }

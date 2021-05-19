@@ -16,6 +16,7 @@ import skywolf46.bsl.core.netty.handler.ErrorPrintingHandler
 import skywolf46.bsl.core.netty.handler.IncomingPacketHandler
 import skywolf46.bsl.core.netty.handler.OutgoingPacketHandler
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
+import java.net.SocketAddress
 
 class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer {
     private var chan: Channel? = null
@@ -67,7 +68,7 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
     }
 
     override fun send(vararg packet: IBSLPacket) {
-        for (x in packet){
+        for (x in packet) {
             BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {
                 it.data.invoke(x)
             }
@@ -82,5 +83,10 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
     override fun hasPermission(permission: SecurityPermissions): Boolean {
         // No use
         return false
+    }
+
+
+    override fun address(): SocketAddress {
+        throw java.lang.IllegalStateException("Unsupported Operation")
     }
 }
