@@ -45,12 +45,12 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
                 @Throws(Exception::class)
                 override fun initChannel(ch: SocketChannel) {
                     ch.pipeline().addLast(
+                        ErrorPrintingHandler(),
                         ChannelActiveVerifyPacketHandler(),
                         LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4),
                         IncomingPacketHandler(this@BSLServerHost),
                         LengthFieldPrepender(4),
-                        OutgoingPacketHandler(),
-                        ErrorPrintingHandler()
+                        OutgoingPacketHandler()
                     )
                 }
             }).option(ChannelOption.SO_BACKLOG, 128)
@@ -135,5 +135,13 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
 
     fun addServerTemporary(connection: BSLServerConnection) {
         serverReversed[connection.chan] = connection
+    }
+
+    fun getServers(): MutableList<IBSLServer> {
+        return ArrayList(serverReversed.values)
+    }
+
+    fun getVerifiedServers(): MutableList<IBSLServer> {
+        return ArrayList(serversPort.values)
     }
 }

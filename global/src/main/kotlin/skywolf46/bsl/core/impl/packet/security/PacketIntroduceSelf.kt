@@ -1,6 +1,7 @@
 package skywolf46.bsl.core.impl.packet.security
 
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
+import skywolf46.bsl.core.annotations.BSLAfterRead
 import skywolf46.bsl.core.annotations.BSLBeforeWrite
 import skywolf46.bsl.core.annotations.BSLExclude
 import skywolf46.bsl.core.util.EncryptionUtility
@@ -19,7 +20,7 @@ class PacketIntroduceSelf(
     @BSLExclude
     var key: PublicKey? = key
 
-    private var passwordArr = password.toByteArray()
+    var passwordArr = password.toByteArray()
 
     fun getPassword(key: PrivateKey?) =
         if (key == null) String(passwordArr) else String(EncryptionUtility.decrypt(passwordArr, key))

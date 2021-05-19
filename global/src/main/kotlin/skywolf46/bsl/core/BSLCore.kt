@@ -17,6 +17,8 @@ import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
 import skywolf46.bsl.core.impl.packet.security.PacketRequestAuthenticate
+import skywolf46.bsl.core.impl.serializer.collections.ListSerializer
+import skywolf46.bsl.core.impl.serializer.collections.MapSerializer
 import skywolf46.bsl.core.impl.serializer.primitive.*
 import skywolf46.bsl.core.storage.PriorityHandlerHandlerStorage
 import skywolf46.bsl.core.util.MethodCaller
@@ -29,6 +31,8 @@ import java.lang.reflect.Modifier
 import java.util.*
 import java.util.jar.JarFile
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 import kotlin.reflect.full.companionObjectInstance
 
 object BSLCore {
@@ -59,29 +63,6 @@ object BSLCore {
         for (c in cls) {
             classLookup.append(c.asLookUp().toRange(), serializer as IByteBufSerializer<Any>)
         }
-    }
-
-    fun init(stream: InputStream = javaClass.getResourceAsStream("system.properties")) {
-        val prop = Properties()
-        prop.load(stream)
-        println("BSL-Core | ...BSL version ${prop["version"]}")
-        println("BSL-Core | Initializing default serializers")
-        register(IntSerializer(), Int::class.java, Int::class.javaPrimitiveType!!)
-        register(DoubleSerializer(), Double::class.java, Double::class.javaPrimitiveType!!)
-        register(FloatSerializer(), Float::class.java, Float::class.javaPrimitiveType!!)
-        register(ByteSerializer(), Byte::class.java, Byte::class.javaPrimitiveType!!)
-        register(ShortSerializer(), Short::class.java, Short::class.javaPrimitiveType!!)
-        register(BooleanSerializer(), Boolean::class.java, Boolean::class.javaPrimitiveType!!)
-        register(StringSerializer(), String::class.java)
-        register(ByteArraySerializer(), ByteArray::class.java)
-        println("BSL-Core | Initializing default packets")
-        resolve(PacketBroadcastAll::class.java)
-        resolve(PacketRequireProxy::class.java)
-        resolve(PacketLogToServer::class.java)
-        resolve(PacketReplied::class.java)
-        resolve(PacketAuthenticateResult::class.java)
-        resolve(PacketIntroduceSelf::class.java)
-        resolve(PacketRequestAuthenticate::class.java)
     }
 
     fun afterProcessor(cls: Class<Any>): ClassAfterProcessor {
@@ -115,11 +96,6 @@ object BSLCore {
                     })
                     scanClass(cls as Class<Any>)
                 } catch (e: Throwable) {
-                    println("Failed on ${
-                        x.name.replace("/", ".").let {
-                            return@let it.substring(0, it.length - 6)
-                        }
-                    } -> ${e.javaClass.name}")
                     continue
                 }
             }
@@ -188,6 +164,53 @@ object BSLCore {
             }
         }
     }
+
+    fun init(stream: InputStream = javaClass.getResourceAsStream("system.properties")) {
+        val prop = Properties()
+        prop.load(stream)
+        println("BSL-Core | ...BSL version ${prop["version"]}")
+        println("BSL-Core | Initializing primitive serializers")
+        registerPrimitive()
+        println("BSL-Core | Initializing default serializers")
+        registerCollections()
+        println("BSL-Core | Initializing default packets")
+        resolve(PacketBroadcastAll::class.java)
+        resolve(PacketRequireProxy::class.java)
+        resolve(PacketLogToServer::class.java)
+        resolve(PacketReplied::class.java)
+        resolve(PacketAuthenticateResult::class.java)
+        resolve(PacketIntroduceSelf::class.java)
+        resolve(PacketRequestAuthenticate::class.java)
+    }
+
+    private fun registerPrimitive() {
+        register(IntSerializer(), Int::class.java, Int::class.javaPrimitiveType!!)
+        register(DoubleSerializer(), Double::class.java, Double::class.javaPrimitiveType!!)
+        register(FloatSerializer(), Float::class.java, Float::class.javaPrimitiveType!!)
+        register(ByteSerializer(), Byte::class.java, Byte::class.javaPrimitiveType!!)
+        register(ShortSerializer(), Short::class.java, Short::class.javaPrimitiveType!!)
+        register(BooleanSerializer(), Boolean::class.java, Boolean::class.javaPrimitiveType!!)
+        register(StringSerializer(), String::class.java)
+        register(ByteArraySerializer(), ByteArray::class.java)
+    }
+
+    private fun registerCollections() {
+        register(ListSerializer {
+            return@ListSerializer ArrayList()
+        }, ArrayList::class.java)
+        register(ListSerializer {
+            return@ListSerializer LinkedList()
+        }, LinkedList::class.java)
+
+        register(MapSerializer {
+            return@MapSerializer HashMap()
+        }, HashMap::class.java)
+
+        register(MapSerializer {
+            return@MapSerializer LinkedHashMap()
+        }, LinkedHashMap::class.java)
+    }
+
 }
 
 

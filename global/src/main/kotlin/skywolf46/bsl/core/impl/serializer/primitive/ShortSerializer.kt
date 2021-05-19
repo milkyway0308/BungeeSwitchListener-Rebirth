@@ -5,19 +5,21 @@ import skywolf46.bsl.core.abstraction.IByteBufSerializer
 import skywolf46.bsl.core.enums.DataMode
 
 class ShortSerializer : IByteBufSerializer<Short> {
-    override fun ByteBuf.writeBuffer(data: Short, mode: DataMode) {
+
+    override fun ByteBuf.writePacketHeader(data: Short) {
         writeShort(data.toInt())
     }
 
-    override fun ByteBuf.readBuffer(readMode: DataMode): Short {
+    override fun ByteBuf.writePacketField(data: Short) {
+        // Do nothing on primitive
+    }
+
+    override fun ByteBuf.readPacketHeader(): Short {
         return readShort()
     }
 
-    override fun ByteBuf.readBuffer(orig: Short, readMode: DataMode) {
+    override fun ByteBuf.readPacketField(orig: Short) {
         // Do nothing on primitive
     }
 
-    override fun ByteBuf.writePacketHeader(data: Short) {
-        // Do nothing on primitive
-    }
 }

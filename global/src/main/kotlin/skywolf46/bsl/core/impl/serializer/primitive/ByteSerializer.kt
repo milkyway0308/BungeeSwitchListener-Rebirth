@@ -5,17 +5,18 @@ import skywolf46.bsl.core.abstraction.IByteBufSerializer
 import skywolf46.bsl.core.enums.DataMode
 
 class ByteSerializer : IByteBufSerializer<Byte> {
-    override fun ByteBuf.writeBuffer(data: Byte, mode: DataMode) {
+
+    override fun ByteBuf.writePacketHeader(data: Byte) {
         writeByte(data.toInt())
     }
 
-    override fun ByteBuf.readBuffer(readMode: DataMode): Byte = readByte()
-
-    override fun ByteBuf.readBuffer(orig: Byte, readMode: DataMode) {
+    override fun ByteBuf.writePacketField(data: Byte) {
         // Do nothing on primitive
     }
 
-    override fun ByteBuf.writePacketHeader(data: Byte) {
+    override fun ByteBuf.readPacketHeader(): Byte = readByte()
+
+    override fun ByteBuf.readPacketField(orig: Byte) {
         // Do nothing on primitive
     }
 

@@ -16,8 +16,8 @@ class PacketReplied() : AbstractPacketBase<PacketReplied>() {
                 it.data.invoke(packet)
             }
             BSLCore.resolve(packet.javaClass).apply {
-                write(buf, packet, DataMode.HEADER)
-                write(buf, packet, DataMode.NON_HEADER)
+                writeHeaderData(buf, packet)
+                writeFieldData(buf, packet)
             }
             rep.server = server
             rep.packet = buf.array()
@@ -42,7 +42,7 @@ class PacketReplied() : AbstractPacketBase<PacketReplied>() {
         val buf = Unpooled.wrappedBuffer(packet)
         val range = buf.readInt()..buf.readInt()
         val lookup = BSLCore.classLookup.lookUpValue(range)
-        val packet = lookup?.read(buf, DataMode.HEADER)
+        val packet = lookup?.readHeaderData(buf)
             ?: throw IllegalStateException("Cannot deserialize packet range in ${range.first}..${range.last}")
 
         packet as AbstractPacketBase<*>
@@ -53,7 +53,7 @@ class PacketReplied() : AbstractPacketBase<PacketReplied>() {
         }
         val handlers = BSLCore.handlerList(packet.javaClass)
         if (handlers.isNotEmpty()) {
-            lookup.read(packet, buf, DataMode.NON_HEADER)
+            lookup.readFieldData(packet, buf)
             for (x in handlers) {
                 x.data.invoke(packet)
             }

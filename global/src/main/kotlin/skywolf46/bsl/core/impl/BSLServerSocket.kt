@@ -46,11 +46,11 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
                 @Throws(Exception::class)
                 override fun initChannel(ch: SocketChannel) {
                     ch.pipeline().addLast(
+                        ErrorPrintingHandler(),
                         LengthFieldBasedFrameDecoder(1024, 0, 4, 0, 4),
                         IncomingPacketHandler(this@BSLServerSocket),
                         LengthFieldPrepender(4),
                         OutgoingPacketHandler(),
-                        ErrorPrintingHandler()
                     )
                 }
             })

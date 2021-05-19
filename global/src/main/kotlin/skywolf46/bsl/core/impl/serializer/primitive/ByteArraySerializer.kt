@@ -5,23 +5,24 @@ import skywolf46.bsl.core.abstraction.IByteBufSerializer
 import skywolf46.bsl.core.enums.DataMode
 
 class ByteArraySerializer : IByteBufSerializer<ByteArray> {
-    override fun ByteBuf.writeBuffer(data: ByteArray, mode: DataMode) {
+
+    override fun ByteBuf.writePacketHeader(data: ByteArray) {
         writeInt(data.size)
         writeBytes(data)
     }
 
-    override fun ByteBuf.readBuffer(readMode: DataMode): ByteArray {
-        val size = readInt()
-        return ByteArray(size).apply {
+    override fun ByteBuf.writePacketField(data: ByteArray) {
+        // Do nothing on primitive
+    }
+
+    override fun ByteBuf.readPacketHeader(): ByteArray {
+        return ByteArray(readInt()).apply {
             readBytes(this)
         }
     }
 
-    override fun ByteBuf.readBuffer(orig: ByteArray, readMode: DataMode) {
+    override fun ByteBuf.readPacketField(orig: ByteArray) {
         // Do nothing on primitive
     }
 
-    override fun ByteBuf.writePacketHeader(data: ByteArray) {
-        // Do nothing on primitive
-    }
 }

@@ -5,17 +5,19 @@ import skywolf46.bsl.core.abstraction.IByteBufSerializer
 import skywolf46.bsl.core.enums.DataMode
 
 class BooleanSerializer : IByteBufSerializer<Boolean> {
-    override fun ByteBuf.writeBuffer(data: Boolean, mode: DataMode) {
-        writeBoolean(data)
-    }
 
-    override fun ByteBuf.readBuffer(readMode: DataMode): Boolean = readBoolean()
+    override fun ByteBuf.readPacketHeader(): Boolean = readBoolean()
 
-    override fun ByteBuf.readBuffer(orig: Boolean, readMode: DataMode) {
+    override fun ByteBuf.readPacketField(orig: Boolean) {
         // Do nothing on primitive
     }
 
     override fun ByteBuf.writePacketHeader(data: Boolean) {
+        writeBoolean(data)
+    }
+
+    override fun ByteBuf.writePacketField(data: Boolean) {
         // Do nothing on primitive
     }
+
 }

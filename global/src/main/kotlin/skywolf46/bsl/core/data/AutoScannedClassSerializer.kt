@@ -6,7 +6,6 @@ import skywolf46.bsl.core.abstraction.IByteBufSerializer
 import skywolf46.bsl.core.annotations.BSLExclude
 import skywolf46.bsl.core.annotations.BSLHeader
 import skywolf46.bsl.core.enums.DataMode
-import skywolf46.bsl.core.util.ByteBufUtil
 import skywolf46.bsl.core.util.CoveredIntRange
 import skywolf46.bsl.core.util.asLookUp
 import java.lang.IllegalStateException
@@ -37,35 +36,31 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
     }
 
     override fun ByteBuf.writePacketHeader(data: X) {
-        writeInt(pairRange!!.first).writeInt(pairRange!!.last)
-    }
-
-    override fun ByteBuf.writeBuffer(data: X, mode: DataMode) {
         if (pairRange == null) {
             calculateCurrentHash()
         }
-        val mark = writerIndex()
-        try {
-            when (mode) {
-                DataMode.HEADER -> {
-                    writePacketHeader(data)
-                    for (x in headers) {
-                        BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data), mode)
-                    }
-                }
-                DataMode.NON_HEADER -> {
-                    for (x in fields) {
-                        BSLCore.resolve(x.field.type as Class<Any>).write(this, x.field.get(data), mode)
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            writerIndex(mark)
-            throw e
+        writeInt(pairRange!!.first).writeInt(pairRange!!.last)
+        for (x in headers) {
+            BSLCore.resolve(x.field.type as Class<Any>).writeHeaderData(this, x.field.get(data))
         }
     }
 
-    override fun ByteBuf.readBuffer(readMode: DataMode): X {
+    override fun ByteBuf.writePacketField(data: X) {
+        for (x in headers) {
+            BSLCore.resolve(x.field.type as Class<Any>).let {
+                it.writeFieldData(this, x.field.get(data))
+            }
+        }
+
+        for (x in fields) {
+            BSLCore.resolve(x.field.type as Class<Any>).let {
+                it.writeHeaderData(this, x.field.get(data))
+                it.writeFieldData(this, x.field.get(data))
+            }
+        }
+    }
+
+    override fun ByteBuf.readPacketHeader(): X {
         if (pairRange == null) {
             calculateCurrentHash()
         }
@@ -74,41 +69,28 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
                 isAccessible = true
             }
             .newInstance()
-        for (x in when (readMode) {
-            DataMode.HEADER -> {
-                if (pairRange!!.first != readInt() || pairRange!!.last != readInt()) {
-                    throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
-                }
-                headers
-            }
-            DataMode.NON_HEADER -> {
-                fields
-            }
-        }) {
+        if (pairRange!!.first != readInt() || pairRange!!.last != readInt()) {
+            throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
+        }
+        for (x in headers) {
             x.field.set(const,
-                BSLCore.resolve(x.field.type).read(this, readMode)
+                BSLCore.resolve(x.field.type).readHeaderData(this)
                     ?: throw IllegalStateException("Cannot parse ${x.field.type.name} : Serializer not exists")
             )
         }
         return const as X
     }
 
-    override fun ByteBuf.readBuffer(orig: X, readMode: DataMode) {
-        for (x in when (readMode) {
-            DataMode.HEADER -> {
-                if (pairRange!!.first != readInt() || pairRange!!.last != readInt()) {
-                    throw IllegalStateException("Cannot read data of ${cls.name} : Validator range not equals")
-                }
-                headers
+    override fun ByteBuf.readPacketField(orig: X) {
+        for (x in headers) {
+            BSLCore.resolve(x.field.type as Class<Any>).readFieldData(x.field.get(orig), this)
+        }
+        for (x in fields) {
+            BSLCore.resolve(x.field.type as Class<Any>).let {
+                x.field.set(orig,
+                    it.readFully(this)
+                )
             }
-            DataMode.NON_HEADER -> {
-                fields
-            }
-        }) {
-            x.field.set(orig,
-                BSLCore.resolve(x.field.type).read(this, readMode)
-                    ?: throw IllegalStateException("Cannot parse ${x.field.type.name} : Serializer not exists")
-            )
         }
     }
 

@@ -2,6 +2,7 @@ package skywolf46.bsl.server.handler
 
 import net.md_5.bungee.BungeeCord
 import net.md_5.bungee.api.chat.TextComponent
+import skywolf46.bsl.core.abstraction.IBSLServer
 import skywolf46.bsl.core.annotations.BSLHandler
 import skywolf46.bsl.core.annotations.BSLSideOnly
 import skywolf46.bsl.core.enums.BSLSide
@@ -13,14 +14,18 @@ import skywolf46.bsl.core.impl.packet.minecraft.packet.PacketBroadcastAll
 import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
+import skywolf46.bsl.core.impl.packet.sync.PacketCannotSynchronize
+import skywolf46.bsl.core.impl.packet.sync.PacketDataSynchronized
 import skywolf46.bsl.core.impl.packet.sync.PacketRequestSynchronize
+import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import skywolf46.bsl.server.BungeeSwitchListener
+import java.lang.IllegalStateException
 import java.util.concurrent.atomic.AtomicLong
 
 @BSLSideOnly(BSLSide.PROXY)
 object BSLServerSideProxyHandler {
     private val syncTimestamp = AtomicLong()
-    private val syncRequested = mutableMapOf<Long, () -> Unit>()
+    private val syncRequested = mutableMapOf<Long, Pair<IBSLServer, () -> Unit>>()
 
     @BSLHandler
     fun PacketReplied.onResponse() {
@@ -66,6 +71,31 @@ object BSLServerSideProxyHandler {
     @BSLHandler
     fun PacketRequestSynchronize.onServerSync() {
         val currentRequest = syncTimestamp.incrementAndGet()
+        val servers = BSLServerHost.host!!.getVerifiedServers()
+            .filter { x -> x.hasPermission(SecurityPermissions.ADMIN) }
+            .toMutableList()
+        val packetToSend = PacketRequestSynchronize(currentRequest, className)
+        val invoker: Pair<IBSLServer, () -> Unit> = header.server to {
+            if (servers.isNotEmpty()) {
+                servers.removeAt(0).send(packetToSend)
+            } else {
+                syncRequested.remove(currentRequest)
+                header.server.send(PacketCannotSynchronize(0, className))
+            }
+        }
+        syncRequested[currentRequest] = invoker
+        invoker.second()
+    }
 
+    @BSLHandler
+    fun PacketCannotSynchronize.onSyncFailed() {
+        syncRequested[timestamp]?.second?.invoke()
+            ?: throw IllegalStateException("Illegal synchronization: Timestamp ${timestamp} is not in queue")
+    }
+
+    @BSLHandler
+    fun PacketDataSynchronized.onSyncSuccess() {
+        syncRequested[timestamp]?.first?.send(this)
+            ?: throw IllegalStateException("Illegal synchronization: Timestamp ${timestamp} is not in queue")
     }
 }

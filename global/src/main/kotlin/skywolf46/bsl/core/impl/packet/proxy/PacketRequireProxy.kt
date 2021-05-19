@@ -17,8 +17,8 @@ class PacketRequireProxy : AbstractPacketBase<PacketRequireProxy>() {
             val buf = Unpooled.buffer()
 
             BSLCore.resolve(packet.javaClass).apply {
-                write(buf, packet, DataMode.HEADER)
-                write(buf, packet, DataMode.NON_HEADER)
+                writeHeaderData(buf, packet)
+                writeFieldData(buf, packet)
             }
             val proxy = PacketRequireProxy()
             proxy.targetPort = targetPort
@@ -36,10 +36,7 @@ class PacketRequireProxy : AbstractPacketBase<PacketRequireProxy>() {
     fun unwrap(): IBSLPacket {
         val buf = Unpooled.wrappedBuffer(packets)
         val range = buf.readInt()..buf.readInt()
-        val packet = BSLCore.classLookup.lookUpValue(range)?.apply {
-            read(buf, DataMode.HEADER)
-            read(buf, DataMode.NON_HEADER)
-        }
+        val packet = BSLCore.classLookup.lookUpValue(range)?.readFully(buf)
             ?: throw IllegalStateException("Cannot deserialize packet range in ${range.first}..${range.last}")
         buf.release()
         return packet as IBSLPacket

@@ -1,6 +1,5 @@
 package skywolf46.bsl.global.test
 
-import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import org.junit.Before
 import org.junit.FixMethodOrder
@@ -27,7 +26,7 @@ class BufferReadTest {
         val packetToWrite = TestPacket()
         packetToWrite.x3VariableInner.text = "Test!"
         val writer: IByteBufSerializer<TestPacket> = BSLCore.resolve(packetToWrite.javaClass)
-        writer.write(sharedBuffer, packetToWrite, DataMode.HEADER)
+        writer.writeHeaderData(sharedBuffer, packetToWrite)
         println(">> Packet write complete : Buffer has ${sharedBuffer.readableBytes()}")
     }
 
@@ -35,7 +34,7 @@ class BufferReadTest {
     fun test2ReadObjectFromBuffer() {
         test1OnWriteObjectToBuffer()
         val reader = BSLCore.resolve(TestPacket::class.java)
-        reader.read(sharedBuffer, DataMode.HEADER).validateEquals()
+        reader.readHeaderData(sharedBuffer).validateEquals()
     }
 
     @Test
@@ -43,7 +42,7 @@ class BufferReadTest {
         val packetToWrite = TestPacket()
         packetToWrite.changeHeaders()
         val writer: IByteBufSerializer<TestPacket> = BSLCore.resolve(packetToWrite.javaClass)
-        writer.write(sharedBuffer, packetToWrite, DataMode.HEADER)
+        writer.writeHeaderData(sharedBuffer, packetToWrite)
         println(">> Packet write complete : Buffer has ${sharedBuffer.readableBytes()}")
 
     }
@@ -52,6 +51,6 @@ class BufferReadTest {
     fun test4ReadHeadersOnly() {
         test3WriteHeaderOnly()
         val reader = BSLCore.resolve(TestPacket::class.java)
-        reader.read(sharedBuffer, DataMode.HEADER).validateHeaderEquals()
+        reader.readHeaderData(sharedBuffer).validateHeaderEquals()
     }
 }

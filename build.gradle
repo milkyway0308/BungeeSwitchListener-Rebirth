@@ -23,11 +23,14 @@ dependencies {
 
 jar {
     dependsOn("shadowJar")
+    archiveClassifier.set("pure")
 }
 
 shadowJar {
+    archiveFileName.set("${project.name}-${project.version}.jar")
     destinationDirectory = file("$rootDir/releases")
 }
+
 tasks {
     shadowJar {
         archiveClassifier.set("shaded")
@@ -54,7 +57,9 @@ publishing {
             groupId 'skywolf46'
             artifactId "bsl"
             version rootProject.properties['version'] as String
-            from components.java
+            artifact(tasks["shadowJar"]) {
+                classifier = null
+            }
         }
     }
 }

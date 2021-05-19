@@ -4,34 +4,36 @@ import io.netty.buffer.ByteBuf
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IByteBufSerializer
 import skywolf46.bsl.core.enums.DataMode
+import skywolf46.bsl.core.util.asLookUp
 import java.lang.IllegalStateException
 
-class ListSerializer : IByteBufSerializer<List<Any>> {
-    override fun ByteBuf.writeBuffer(data: List<Any>, mode: DataMode) {
+class ListSerializer(val baseProvider: () -> MutableList<Any>) : IByteBufSerializer<List<Any>> {
+    override fun ByteBuf.writePacketHeader(data: List<Any>) {
         writeInt(data.size)
         for (x in data)
             BSLCore.resolve(x.javaClass).let {
-                it.write(this, x, DataMode.HEADER)
-                it.write(this, x, DataMode.NON_HEADER)
+                val range = x.asLookUp().toRange()
+                writeInt(range.first).writeInt(range.last)
+                it.writeHeaderData(this, x)
+                it.writeFieldData(this, x)
             }
     }
 
-    override fun ByteBuf.readBuffer(readMode: DataMode): List<Any> {
-        val ret = mutableListOf<Any>()
+    override fun ByteBuf.writePacketField(data: List<Any>) {
+        // Do nothing on primitive
+    }
+
+    override fun ByteBuf.readPacketHeader(): List<Any> {
+        val ret = baseProvider()
         for (x in 0 until readInt())
-            ret += BSLCore.classLookup.lookUpValue(readInt()..readInt())?.let {
-                it.read(this, DataMode.HEADER)
-                it.read(this, DataMode.NON_HEADER)
-            }
+            ret += BSLCore.classLookup.lookUpValue(readInt()..readInt())?.readFully(this)
                 ?: IllegalStateException("")
         return ret
     }
 
-    override fun ByteBuf.readBuffer(orig: List<Any>, readMode: DataMode) {
+    override fun ByteBuf.readPacketField(orig: List<Any>) {
         // Not support additional deserialize
     }
 
-    override fun ByteBuf.writePacketHeader(data: List<Any>) {
-        // Do nothing on primitive
-    }
+
 }

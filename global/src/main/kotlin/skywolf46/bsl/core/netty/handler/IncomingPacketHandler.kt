@@ -11,7 +11,6 @@ import skywolf46.bsl.core.enums.ListenerType
 import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.impl.BSLServerHost
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
-import skywolf46.bsl.core.util.ByteBufUtil
 
 class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapter() {
     val packetLimitation = 120000
@@ -35,7 +34,7 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
             msg.release()
             return
         }
-        val pac = lup.read(msg, DataMode.HEADER)
+        val pac = lup.readHeaderData(msg)
         if (pac !is IBSLPacket) {
             System.err.println("BSL-Core | Deserialization core detected non-packet field; Packet will be ignored.")
             return
@@ -73,7 +72,8 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
                 msg.release()
                 return
             }
-            lup.read(pac, msg, DataMode.NON_HEADER)
+            lup.readFieldData(pac, msg)
+
             for (x in handlers) {
                 x.data.invoke(pac)
             }

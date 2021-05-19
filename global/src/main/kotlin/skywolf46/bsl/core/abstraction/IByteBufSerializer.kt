@@ -5,21 +5,32 @@ import skywolf46.bsl.core.enums.DataMode
 
 interface IByteBufSerializer<X : Any> {
     fun ByteBuf.writePacketHeader(data: X)
-    fun ByteBuf.writeBuffer(data: X, mode: DataMode)
-    fun ByteBuf.readBuffer(readMode: DataMode): X
-    fun ByteBuf.readBuffer(orig: X, readMode: DataMode)
+    fun ByteBuf.writePacketField(data: X)
+    fun ByteBuf.readPacketHeader(): X
+    fun ByteBuf.readPacketField(orig: X)
 
-
-    fun write(buf: ByteBuf, data: X, mode: DataMode) {
-        buf.writeBuffer(data, mode)
+    fun writeHeaderData(buf: ByteBuf, data: X) {
+        buf.writePacketHeader(data)
     }
 
-    fun read(data: X, buf: ByteBuf, readMode: DataMode) {
-        buf.readBuffer(data, readMode)
+
+    fun writeFieldData(buf: ByteBuf, data: X) {
+        buf.writePacketField(data)
     }
 
-    fun read(buf: ByteBuf, readMode: DataMode): X {
-        return buf.readBuffer(readMode)
+    fun readHeaderData(buf: ByteBuf): X {
+        return buf.readPacketHeader()
+    }
+
+    fun readFieldData(data: X, buf: ByteBuf) {
+        buf.readPacketField(data)
+    }
+
+
+    fun readFully(buf: ByteBuf): X {
+        val data = readHeaderData(buf)
+        readFieldData(data, buf)
+        return data
     }
 
 }
