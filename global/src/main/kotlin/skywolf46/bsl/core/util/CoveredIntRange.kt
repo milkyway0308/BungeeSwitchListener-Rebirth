@@ -9,7 +9,7 @@ class CoveredIntRange(val range: IntRange) {
 
         other as CoveredIntRange
 
-        if (range != other.range) return false
+        if (range.first != other.range.first || range.last != other.range.last) return false
 
         return true
     }

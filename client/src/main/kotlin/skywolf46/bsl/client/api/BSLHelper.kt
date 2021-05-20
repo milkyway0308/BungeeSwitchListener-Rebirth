@@ -27,7 +27,7 @@ object BSLHelper {
     }
 
     @JvmStatic
-    fun requestSync(packetClass: Class<out AbstractPacketBase<*>>) {
+    fun requestSync(packetClass: AbstractPacketBase<*>) {
         send(PacketRequestSynchronize(0, packetClass))
     }
 

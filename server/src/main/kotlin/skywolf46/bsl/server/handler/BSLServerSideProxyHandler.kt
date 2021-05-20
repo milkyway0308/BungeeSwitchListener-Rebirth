@@ -79,13 +79,13 @@ object BSLServerSideProxyHandler {
         val servers = BSLServerHost.host!!.getVerifiedServers()
             .filter { x -> x != header.server && x.hasPermission(SecurityPermissions.ADMIN) }
             .toMutableList()
-        val packetToSend = PacketRequestSynchronize(currentRequest, className)
+        val packetToSend = PacketRequestSynchronize(currentRequest, range, packet)
         val invoker: Pair<IBSLServer, () -> Unit> = header.server to {
             if (servers.isNotEmpty()) {
                 servers.removeAt(0).send(packetToSend)
             } else {
                 syncRequested.remove(currentRequest)
-                header.server.send(PacketCannotSynchronize(0, className))
+                header.server.send(PacketCannotSynchronize(0, range))
             }
         }
         syncRequested[currentRequest] = invoker
