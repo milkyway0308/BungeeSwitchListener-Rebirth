@@ -5,17 +5,24 @@ import skywolf46.bsl.client.handler.BSLVerifyHandler
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.AbstractPacketSyncRequest
+import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.PacketReplied
-import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.sync.PacketRequestSynchronize
-import java.lang.IllegalStateException
 
 object BSLHelper {
 
     @JvmStatic
-    fun send(packet: AbstractPacketBase<*>) {
+    fun send(packet: AbstractPacketBase<*>): BSLHelper {
         BungeeSwitchListener.socket.send(packet)
+        return this
     }
+
+    @JvmStatic
+    fun broadcast(packet: AbstractPacketBase<*>): BSLHelper {
+        send(PacketBroadcastPacket(packet))
+        return this
+    }
+
 
     @JvmStatic
     fun proxy(port: Int, packet: AbstractPacketBase<*>) {
@@ -26,6 +33,7 @@ object BSLHelper {
     fun proxy(server: String, packet: AbstractPacketBase<*>) {
         BungeeSwitchListener.socket.send(PacketReplied.of(server, packet))
     }
+
 
     @JvmStatic
     fun requestSync(packetClass: AbstractPacketSyncRequest<*>) {

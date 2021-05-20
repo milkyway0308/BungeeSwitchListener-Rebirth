@@ -8,6 +8,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder
 import io.netty.handler.codec.LengthFieldPrepender
 import skywolf46.bsl.core.BSLCore
+import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.IBSLPacket
 import skywolf46.bsl.core.abstraction.IBSLProxyServer
 import skywolf46.bsl.core.abstraction.IBSLServer
@@ -77,14 +78,18 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
 
     override fun broadcast(vararg packet: IBSLPacket) {
         for (x in packet) {
+            x as AbstractPacketBase<*>
             BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {
                 it.data.invoke(x)
             }
+            for (server in servers.values) {
+                if (server == x.header.server)
+                    continue
+                server.send(x, callBeforeWrite = false)
+            }
         }
 
-        for (x in servers.values) {
-            x.send(*packet, callBeforeWrite = false)
-        }
+
     }
 
     override fun send(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {

@@ -2,7 +2,6 @@ package skywolf46.bsl.server.handler
 
 import net.md_5.bungee.BungeeCord
 import net.md_5.bungee.api.chat.TextComponent
-import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IBSLServer
 import skywolf46.bsl.core.annotations.BSLHandler
 import skywolf46.bsl.core.annotations.BSLSideOnly
@@ -11,7 +10,7 @@ import skywolf46.bsl.core.impl.BSLServerConnection
 import skywolf46.bsl.core.impl.BSLServerHost
 import skywolf46.bsl.core.impl.packet.PacketLogToServer
 import skywolf46.bsl.core.impl.packet.PacketReplied
-import skywolf46.bsl.core.impl.packet.minecraft.packet.PacketBroadcastAll
+import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
@@ -43,7 +42,7 @@ object BSLServerSideProxyHandler {
     }
 
     @BSLHandler
-    fun PacketBroadcastAll.onPacket() {
+    fun PacketBroadcastPacket.onPacket() {
         BSLServerHost.host!!.broadcast(this)
     }
 

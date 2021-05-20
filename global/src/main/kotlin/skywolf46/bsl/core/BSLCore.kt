@@ -12,7 +12,7 @@ import skywolf46.bsl.core.enums.BSLSide
 import skywolf46.bsl.core.enums.ListenerType
 import skywolf46.bsl.core.impl.packet.PacketLogToServer
 import skywolf46.bsl.core.impl.packet.PacketReplied
-import skywolf46.bsl.core.impl.packet.minecraft.packet.PacketBroadcastAll
+import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
@@ -178,7 +178,7 @@ object BSLCore {
         registerCollections()
         registerSerializers()
         println("BSL-Core | Initializing default packets")
-        resolve(PacketBroadcastAll::class.java)
+        resolve(PacketBroadcastPacket::class.java)
         resolve(PacketRequireProxy::class.java)
         resolve(PacketLogToServer::class.java)
         resolve(PacketReplied::class.java)
