@@ -2,8 +2,11 @@ package skywolf46.bsl.client
 
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import skywolf46.bsl.client.impl.BukkitSyncProvider
 import skywolf46.bsl.client.listener.BSLListener
+import skywolf46.bsl.client.serializer.minecraft.ItemStackSerializer
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.impl.BSLServerSocket
 import skywolf46.extrautility.util.log
@@ -31,7 +34,9 @@ class BungeeSwitchListener : JavaPlugin() {
 
     override fun onEnable() {
         BSLCore.init(getResource("system.properties"))
+        BSLCore.register(ItemStackSerializer(), ItemStack::class.java)
         BSLCore.scanAll(file)
+        BSLCore.changeSyncProvider(BukkitSyncProvider())
         with(File(dataFolder, "config.yml")) {
             if (!exists()) {
                 parentFile.mkdirs()

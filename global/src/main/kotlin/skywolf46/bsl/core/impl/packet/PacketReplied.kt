@@ -51,13 +51,7 @@ class PacketReplied() : AbstractPacketBase<PacketReplied>() {
         BSLCore.afterProcessor(packet.javaClass).afterRead.forEach {
             it.data.invoke(packet)
         }
-        val handlers = BSLCore.handlerList(packet.javaClass)
-        if (handlers.isNotEmpty()) {
-            lookup.readFieldData(packet, buf)
-            for (x in handlers) {
-                x.data.invoke(packet)
-            }
-        }
+        lookup.readFieldData(packet, buf)
         buf.release()
         return packet
     }

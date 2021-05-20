@@ -7,6 +7,7 @@ import net.md_5.bungee.config.YamlConfiguration
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.impl.BSLServerHost
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
+import skywolf46.bsl.server.impl.BungeeSyncProvider
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -16,12 +17,16 @@ class BungeeSwitchListener : Plugin() {
     companion object {
         var port = 44019
         val permissionMap = mutableMapOf<String, Pair<String, List<SecurityPermissions>>>()
+        lateinit var inst: BungeeSwitchListener
+            private set
     }
 
     override fun onEnable() {
+        inst = this
         BSLCore.isServer = true
         BSLCore.init(getResourceAsStream("system.properties"))
         BSLCore.scanAll(file)
+        BSLCore.changeSyncProvider(BungeeSyncProvider())
         with(File(dataFolder, "config.yml")) {
             if (!exists()) {
                 parentFile.mkdirs()

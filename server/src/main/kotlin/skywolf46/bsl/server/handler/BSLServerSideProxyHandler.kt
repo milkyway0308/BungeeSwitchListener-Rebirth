@@ -2,6 +2,7 @@ package skywolf46.bsl.server.handler
 
 import net.md_5.bungee.BungeeCord
 import net.md_5.bungee.api.chat.TextComponent
+import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IBSLServer
 import skywolf46.bsl.core.annotations.BSLHandler
 import skywolf46.bsl.core.annotations.BSLSideOnly
@@ -28,13 +29,14 @@ object BSLServerSideProxyHandler {
     private val syncRequested = mutableMapOf<Long, Pair<IBSLServer, () -> Unit>>()
 
     @BSLHandler
-    fun PacketReplied.onResponse() {
-        unwrap()
+    fun PacketReplied.onProxy() {
+        BSLServerHost.host!!.fromID(server)?.send(this, false)
+            ?: throw IllegalStateException("BSL packet write error; Cannot write proxy packet : Target server($server) not connected")
     }
 
     @BSLHandler
     fun PacketRequireProxy.onProxy() {
-        val reply = PacketReplied.of(header.targetName, packets)
+        val reply = PacketReplied.of(header.targetName, packet)
         reply.header.targetName = header.targetName
         val server = BSLServerHost.host!!.fromPort(targetPort)
         server?.send(reply)
@@ -55,9 +57,12 @@ object BSLServerSideProxyHandler {
         val conn = header.server as BSLServerConnection
         val pass = getPassword(conn.keypair.second)
         val perm = BungeeSwitchListener.permissionMap[pass]
+        var currentServerName = serverName
         if (perm != null) {
+            currentServerName = BSLServerHost.host!!.rename(serverName)
             println("BSL-Host | Client ${header.server.address()} identified as server name $serverName(Port $port) / Permission level ${perm.first}")
-            BSLServerHost.host!!.addServer(serverName, header.server as BSLServerConnection)
+            println("BSL-Host | Server name duplicated! Name of client ${header.server.address()} changed from $serverName to $currentServerName.")
+            BSLServerHost.host!!.addServer(currentServerName, header.server as BSLServerConnection)
             BSLServerHost.host!!.addServer(port, header.server as BSLServerConnection)
             conn.currentPermission.clear()
             conn.currentPermission.addAll(perm.second)
@@ -72,7 +77,7 @@ object BSLServerSideProxyHandler {
     fun PacketRequestSynchronize.onServerSync() {
         val currentRequest = syncTimestamp.incrementAndGet()
         val servers = BSLServerHost.host!!.getVerifiedServers()
-            .filter { x -> x.hasPermission(SecurityPermissions.ADMIN) }
+            .filter { x -> x != header.server && x.hasPermission(SecurityPermissions.ADMIN) }
             .toMutableList()
         val packetToSend = PacketRequestSynchronize(currentRequest, className)
         val invoker: Pair<IBSLServer, () -> Unit> = header.server to {

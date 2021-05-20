@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
     bungeeApi()
-    wolfyUtil()
+    wolfyUtil("1.40.1")
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compileOnly group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: '1.5.0'
     compileOnly group: 'io.netty', name: 'netty-all', version: '4.1.63.Final'
@@ -34,6 +34,7 @@ test {
 }
 
 processResources {
+    outputs.upToDateWhen { false }
     filesMatching("system.properties") {
         it.expand("version": parent.properties["version"].toString())
     }

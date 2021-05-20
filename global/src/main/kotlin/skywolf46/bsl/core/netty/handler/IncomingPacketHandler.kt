@@ -46,7 +46,7 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
             // Filter permission
             val serverHost = (server as BSLServerHost)
             val server = serverHost.fromChannel(ctx.channel())
-            if (pac.requirePermission() != SecurityPermissions.OPEN_API && (server == null || server.hasPermission(pac.requirePermission()))) {
+            if (pac.requirePermission() != SecurityPermissions.OPEN_API && (server == null || !server.hasPermission(pac.requirePermission()))) {
                 System.err.println("BSL-Core | Packet ${pac.javaClass.simpleName} request from ${
                     server?.getName() ?: ctx.channel().localAddress().toString()
                 } denied : Permission denied")
@@ -73,10 +73,7 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
                 return
             }
             lup.readFieldData(pac, msg)
-
-            for (x in handlers) {
-                x.data.invoke(pac)
-            }
+            pac.callHandler()
         }
         // Release buffer for next packet
         msg.release()

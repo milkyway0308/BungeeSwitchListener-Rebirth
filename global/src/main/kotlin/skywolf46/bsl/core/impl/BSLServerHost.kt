@@ -7,6 +7,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder
 import io.netty.handler.codec.LengthFieldPrepender
+import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IBSLPacket
 import skywolf46.bsl.core.abstraction.IBSLProxyServer
 import skywolf46.bsl.core.abstraction.IBSLServer
@@ -26,9 +27,10 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
             internal set
     }
 
-    private val servers = mutableMapOf<String, MutableList<BSLServerConnection>>()
+    private val servers = mutableMapOf<String, BSLServerConnection>()
     private val serversPort = mutableMapOf<Int, BSLServerConnection>()
     private val serverReversed = mutableMapOf<Channel, BSLServerConnection>()
+    private val nameDuplicated = mutableMapOf<String, Integer>()
     private val bossGroup: EventLoopGroup
     private val workerGroup: EventLoopGroup
 
@@ -74,13 +76,18 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
     }
 
     override fun broadcast(vararg packet: IBSLPacket) {
+        for (x in packet) {
+            BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {
+                it.data.invoke(x)
+            }
+        }
+
         for (x in servers.values) {
-            for (y in x)
-                y.send(*packet)
+            x.send(*packet, callBeforeWrite = false)
         }
     }
 
-    override fun send(vararg packet: IBSLPacket) {
+    override fun send(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {
         throw IllegalStateException("Host server not support sending to self")
     }
 
@@ -101,12 +108,12 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
         return serversPort[targetPort]
     }
 
-    fun fromID(targetServer: String): List<BSLServerConnection>? {
+    fun fromID(targetServer: String): BSLServerConnection? {
         return servers[targetServer]
     }
 
     fun addServer(name: String, server: BSLServerConnection) {
-        servers.computeIfAbsent(name) { mutableListOf() }.add(server)
+        servers[name] = server
     }
 
 
@@ -118,6 +125,17 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
         fromChannel(channel)?.apply {
             removeServer(this)
         }
+    }
+
+    fun rename(name: String): String {
+        var namer = name
+        if (!servers.containsKey(namer))
+            return namer
+        var nameIndex = 0
+        while (servers.containsKey(namer)) {
+            namer = "$namer${nameIndex++}"
+        }
+        return namer
     }
 
     fun removeServer(server: IBSLServer) {

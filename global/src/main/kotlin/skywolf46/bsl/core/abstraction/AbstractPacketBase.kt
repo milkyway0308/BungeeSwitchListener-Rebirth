@@ -30,9 +30,4 @@ abstract class AbstractPacketBase<X : AbstractPacketBase<X>> : IBSLPacket, IList
         return SecurityPermissions.OPEN_API
     }
 
-    fun callHandler() {
-        BSLCore.handlerList(javaClass)?.forEach {
-            it.data.invoke(this)
-        }
-    }
 }

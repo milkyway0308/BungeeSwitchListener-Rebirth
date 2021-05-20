@@ -23,10 +23,12 @@ class BSLServerConnection(internal val chan: Channel) : IBSLServer {
         })
     }
 
-    override fun send(vararg packet: IBSLPacket) {
+    override fun send(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {
         for (x in packet) {
-            BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {
-                it.data.invoke(x)
+            if (callBeforeWrite) {
+                BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {
+                    it.data.invoke(x)
+                }
             }
             chan.writeAndFlush(x)
         }

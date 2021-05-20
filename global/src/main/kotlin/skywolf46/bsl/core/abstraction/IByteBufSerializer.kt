@@ -1,6 +1,7 @@
 package skywolf46.bsl.core.abstraction
 
 import io.netty.buffer.ByteBuf
+import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.enums.DataMode
 
 interface IByteBufSerializer<X : Any> {
@@ -29,6 +30,9 @@ interface IByteBufSerializer<X : Any> {
 
     fun readFully(buf: ByteBuf): X {
         val data = readHeaderData(buf)
+        BSLCore.afterProcessor(data.javaClass).afterRead.forEach {
+            it.data.invoke(data)
+        }
         readFieldData(data, buf)
         return data
     }

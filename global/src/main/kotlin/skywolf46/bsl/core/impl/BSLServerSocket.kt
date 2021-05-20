@@ -63,14 +63,16 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
         group?.shutdownGracefully()
     }
 
-    fun <X : AbstractPacketBase<X>> proxyTo(serverPort: Int, packet: X) {
-        send(PacketRequireProxy.of(serverPort, packet))
+    fun proxyTo(serverPort: Int, packet: AbstractPacketBase<*>) {
+        send(PacketRequireProxy(packet, serverPort))
     }
 
-    override fun send(vararg packet: IBSLPacket) {
+    override fun send(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {
         for (x in packet) {
-            BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {
-                it.data.invoke(x)
+            if (callBeforeWrite) {
+                BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {
+                    it.data.invoke(x)
+                }
             }
             chan?.writeAndFlush(x)
         }

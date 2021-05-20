@@ -6,6 +6,7 @@ import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.annotations.BSLHeader
 import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
+import skywolf46.bsl.core.util.asLookUp
 import java.lang.IllegalStateException
 
 class PacketRequestSynchronize(@BSLHeader private var timestamp: Long, var className: String) :
@@ -20,7 +21,7 @@ class PacketRequestSynchronize(@BSLHeader private var timestamp: Long, var class
         return SecurityPermissions.ADMIN
     }
 
-    fun isPacketOf(cls: Class<Any>): Boolean {
+    fun isPacketOf(cls: Class<*>): Boolean {
         return cls.name == className
     }
 
@@ -35,7 +36,7 @@ class PacketRequestSynchronize(@BSLHeader private var timestamp: Long, var class
         if (isResponded)
             throw IllegalStateException("Already responded")
         isResponded = true
-        header.response(PacketDataSynchronized(timestamp, className, packet.run {
+        header.response(PacketDataSynchronized(timestamp, className, packet.javaClass.asLookUp().toRange(), packet.run {
             val buf = Unpooled.buffer()
             val writer = BSLCore.resolve(javaClass)
             writer.writeHeaderData(buf, packet)

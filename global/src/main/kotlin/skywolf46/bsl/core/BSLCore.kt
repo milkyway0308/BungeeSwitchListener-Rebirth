@@ -17,6 +17,7 @@ import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
 import skywolf46.bsl.core.impl.packet.security.PacketRequestAuthenticate
+import skywolf46.bsl.core.impl.serializer.IntRangeSerializer
 import skywolf46.bsl.core.impl.serializer.collections.ListSerializer
 import skywolf46.bsl.core.impl.serializer.collections.MapSerializer
 import skywolf46.bsl.core.impl.serializer.primitive.*
@@ -40,7 +41,8 @@ object BSLCore {
     val classLookup = StringLookup<Class<Any>, IByteBufSerializer<Any>>()
     val listenerLookup =
         StringLookup<Class<Any>, PriorityHandlerHandlerStorage<ListenerType<Any>, CancellableData<*>.() -> Unit>>()
-    internal var syncProvider: ISyncProvider? = null
+    var syncProvider: ISyncProvider? = null
+        private set
     private val handlerLookup =
         StringLookup<Class<Any>, List<PriorityReference<MethodCaller>>>()
     val afterProcessor = mutableMapOf<Class<Any>, ClassAfterProcessor>()
@@ -48,6 +50,7 @@ object BSLCore {
 
     fun changeSyncProvider(sync: ISyncProvider) {
         this.syncProvider = sync
+        println("BSL-Core | Sync Provider changed to ${sync.javaClass.name}")
     }
 
     fun <X : Any> resolve(type: Class<X>): IByteBufSerializer<X> {
@@ -173,6 +176,7 @@ object BSLCore {
         registerPrimitive()
         println("BSL-Core | Initializing default serializers")
         registerCollections()
+        registerSerializers()
         println("BSL-Core | Initializing default packets")
         resolve(PacketBroadcastAll::class.java)
         resolve(PacketRequireProxy::class.java)
@@ -185,6 +189,7 @@ object BSLCore {
 
     private fun registerPrimitive() {
         register(IntSerializer(), Int::class.java, Int::class.javaPrimitiveType!!)
+        register(LongSerializer(), Long::class.java, Long::class.javaPrimitiveType!!)
         register(DoubleSerializer(), Double::class.java, Double::class.javaPrimitiveType!!)
         register(FloatSerializer(), Float::class.java, Float::class.javaPrimitiveType!!)
         register(ByteSerializer(), Byte::class.java, Byte::class.javaPrimitiveType!!)
@@ -197,18 +202,22 @@ object BSLCore {
     private fun registerCollections() {
         register(ListSerializer {
             return@ListSerializer ArrayList()
-        }, ArrayList::class.java)
+        }, ArrayList::class.java, List::class.java)
         register(ListSerializer {
             return@ListSerializer LinkedList()
         }, LinkedList::class.java)
 
         register(MapSerializer {
             return@MapSerializer HashMap()
-        }, HashMap::class.java)
+        }, HashMap::class.java, Map::class.java)
 
         register(MapSerializer {
             return@MapSerializer LinkedHashMap()
         }, LinkedHashMap::class.java)
+    }
+
+    fun registerSerializers() {
+        register(IntRangeSerializer(), IntRange::class.java)
     }
 
 }
