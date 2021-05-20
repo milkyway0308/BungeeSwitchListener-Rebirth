@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.AbstractContainerPacketBase
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
+import skywolf46.bsl.core.abstraction.AbstractPacketSyncRequest
 import skywolf46.bsl.core.annotations.BSLHeader
 import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
@@ -23,7 +24,7 @@ class PacketRequestSynchronize(
 
     constructor() : this(0L, 0..0, byteArrayOf())
 
-    constructor(timestamp: Long, packet: AbstractPacketBase<*>) : this(timestamp,
+    constructor(timestamp: Long, packet: AbstractPacketSyncRequest<*>) : this(timestamp,
         packet.asLookUp().toRange(),
         BSLCore.resolve(packet::class.java as Class<Any>).let { serializer ->
             val buf = Unpooled.buffer()
@@ -41,7 +42,7 @@ class PacketRequestSynchronize(
         return SecurityPermissions.ADMIN
     }
 
-    fun isPacketOf(cls: Class<*>): Boolean {
+    fun isPacketOf(cls: Class<out AbstractPacketSyncRequest<*>>): Boolean {
         return CoveredIntRange(cls.asLookUp().toRange()) == CoveredIntRange(range)
     }
 

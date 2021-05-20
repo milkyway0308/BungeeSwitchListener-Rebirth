@@ -4,6 +4,7 @@ import skywolf46.bsl.client.BungeeSwitchListener
 import skywolf46.bsl.client.handler.BSLVerifyHandler
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
+import skywolf46.bsl.core.abstraction.AbstractPacketSyncRequest
 import skywolf46.bsl.core.impl.packet.PacketReplied
 import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.sync.PacketRequestSynchronize
@@ -27,7 +28,7 @@ object BSLHelper {
     }
 
     @JvmStatic
-    fun requestSync(packetClass: AbstractPacketBase<*>) {
+    fun requestSync(packetClass: AbstractPacketSyncRequest<*>) {
         send(PacketRequestSynchronize(0, packetClass))
     }
 
