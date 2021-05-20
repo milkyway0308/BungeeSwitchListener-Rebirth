@@ -12,7 +12,8 @@ import java.lang.IllegalStateException
 class PacketRequestSynchronize(@BSLHeader private var timestamp: Long, var className: String) :
     AbstractPacketBase<PacketRequestSynchronize>() {
     @BSLHeader
-    private var isResponded = false
+    var isResponded = false
+        private set
 
     constructor() : this(0L, "")
     constructor(timestamp: Long, clazz: Class<*>) : this(timestamp, clazz.name)

@@ -10,8 +10,14 @@ import skywolf46.bsl.core.impl.packet.sync.PacketRequestSynchronize
 object BSLSyncHandler {
 
     @BSLHandler
-    fun PacketDataSynchronized.onEvent() {
+    fun PacketDataSynchronized.onSyncComplete() {
         unwrap().callHandler()
     }
 
+    @BSLHandler(priority = Integer.MAX_VALUE)
+    fun PacketRequestSynchronize.onSyncRequested() {
+        if (!isResponded) {
+            deny()
+        }
+    }
 }

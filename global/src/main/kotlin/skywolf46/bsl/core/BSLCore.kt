@@ -216,7 +216,7 @@ object BSLCore {
         }, LinkedHashMap::class.java)
     }
 
-    fun registerSerializers() {
+    private fun registerSerializers() {
         register(IntRangeSerializer(), IntRange::class.java)
     }
 
