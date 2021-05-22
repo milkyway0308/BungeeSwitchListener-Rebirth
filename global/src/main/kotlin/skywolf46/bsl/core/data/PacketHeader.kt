@@ -5,9 +5,6 @@ import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.IBSLServer
 import skywolf46.bsl.core.annotations.BSLExclude
 import skywolf46.bsl.core.impl.packet.PacketReplied
-import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
-import java.lang.IllegalStateException
-import java.util.*
 
 class PacketHeader<PACKET : AbstractPacketBase<*>> {
     @BSLExclude

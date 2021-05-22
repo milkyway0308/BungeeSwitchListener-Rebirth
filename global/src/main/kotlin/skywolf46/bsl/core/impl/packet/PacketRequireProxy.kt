@@ -1,14 +1,11 @@
-package skywolf46.bsl.core.impl.packet.proxy
+package skywolf46.bsl.core.impl.packet
 
 import io.netty.buffer.Unpooled
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.AbstractContainerPacketBase
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
-import skywolf46.bsl.core.abstraction.IBSLPacket
 import skywolf46.bsl.core.annotations.BSLHeader
-import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.util.asLookUp
-import skywolf46.bsl.core.util.writeIntRange
 
 class PacketRequireProxy(range: IntRange, array: ByteArray, @BSLHeader var targetPort: Int) :
     AbstractContainerPacketBase<PacketRequireProxy>(range, array) {

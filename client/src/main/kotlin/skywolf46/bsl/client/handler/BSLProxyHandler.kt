@@ -15,6 +15,10 @@ object BSLProxyHandler {
 
     @BSLHandler
     fun PacketBroadcastPacket.onProxy() {
-        unwrap().callHandler()
+        unwrap()
+            .apply {
+                println("Deserialized broadcast packet ${this.javaClass.name}")
+            }
+            .callHandler()
     }
 }

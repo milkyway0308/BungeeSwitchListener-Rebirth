@@ -11,7 +11,7 @@ import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.IBSLPacket
 import skywolf46.bsl.core.abstraction.IBSLServer
-import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
+import skywolf46.bsl.core.impl.packet.PacketRequireProxy
 import skywolf46.bsl.core.netty.handler.ErrorPrintingHandler
 import skywolf46.bsl.core.netty.handler.IncomingPacketHandler
 import skywolf46.bsl.core.netty.handler.OutgoingPacketHandler
@@ -38,24 +38,32 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
     }
 
     fun retry() {
-        group = NioEventLoopGroup()
-        val bootstrap = Bootstrap()
-        bootstrap.group(group)
-            .channel(NioSocketChannel::class.java)
-            .handler(object : ChannelInitializer<SocketChannel>() {
-                @Throws(Exception::class)
-                override fun initChannel(ch: SocketChannel) {
-                    ch.pipeline().addLast(
-                        ErrorPrintingHandler(),
-                        LengthFieldBasedFrameDecoder(1024, 0, 4, 0, 4),
-                        IncomingPacketHandler(this@BSLServerSocket),
-                        LengthFieldPrepender(4),
-                        OutgoingPacketHandler(),
-                    )
-                }
-            })
-        val f: ChannelFuture = bootstrap.connect(ip, port).sync()
-        this.chan = f.channel()
+        try {
+            group = NioEventLoopGroup()
+            val bootstrap = Bootstrap()
+            bootstrap.group(group)
+                .channel(NioSocketChannel::class.java)
+                .handler(object : ChannelInitializer<SocketChannel>() {
+                    @Throws(Exception::class)
+                    override fun initChannel(ch: SocketChannel) {
+                        ch.pipeline().addLast(
+                            ErrorPrintingHandler(),
+                            LengthFieldBasedFrameDecoder(1024, 0, 4, 0, 4),
+                            IncomingPacketHandler(this@BSLServerSocket),
+                            LengthFieldPrepender(4),
+                            OutgoingPacketHandler(),
+                        )
+                    }
+                })
+            val f: ChannelFuture = bootstrap.connect(ip, port).sync()
+            this.chan = f.channel()
+            for (x in success)
+                x()
+        } catch (e: Exception) {
+            group?.shutdownGracefully()
+            for (x in fail)
+                x()
+        }
 //            f.channel().closeFuture().sync()
     }
 
@@ -67,7 +75,7 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
         send(PacketRequireProxy(packet, serverPort))
     }
 
-    override fun send(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {
+    override fun sendAll(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {
         for (x in packet) {
             if (callBeforeWrite) {
                 BSLCore.afterProcessor(x.javaClass).beforeWrite.forEach {

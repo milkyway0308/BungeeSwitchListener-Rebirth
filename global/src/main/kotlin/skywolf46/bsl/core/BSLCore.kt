@@ -13,7 +13,7 @@ import skywolf46.bsl.core.enums.ListenerType
 import skywolf46.bsl.core.impl.packet.PacketLogToServer
 import skywolf46.bsl.core.impl.packet.PacketReplied
 import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
-import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
+import skywolf46.bsl.core.impl.packet.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
 import skywolf46.bsl.core.impl.packet.security.PacketRequestAuthenticate
@@ -34,7 +34,6 @@ import java.util.jar.JarFile
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
-import kotlin.reflect.full.companionObjectInstance
 
 object BSLCore {
     var isServer = false
@@ -114,10 +113,6 @@ object BSLCore {
         }
         if (AbstractPacketBase::class.java.isAssignableFrom(cls)) {
             resolve(cls)
-        }
-        // Companion can declared in object class
-        if (javaClass.kotlin.companionObjectInstance != null) {
-            scanObjectWithoutReject(cls.javaClass.kotlin.companionObjectInstance!!)
         }
         if (javaClass.kotlin.objectInstance != null) {
             scanObjectWithoutReject(cls.kotlin.objectInstance!!)

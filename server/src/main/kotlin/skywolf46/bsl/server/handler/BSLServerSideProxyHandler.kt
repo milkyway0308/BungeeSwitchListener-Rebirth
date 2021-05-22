@@ -11,7 +11,7 @@ import skywolf46.bsl.core.impl.BSLServerHost
 import skywolf46.bsl.core.impl.packet.PacketLogToServer
 import skywolf46.bsl.core.impl.packet.PacketReplied
 import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
-import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
+import skywolf46.bsl.core.impl.packet.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
 import skywolf46.bsl.core.impl.packet.sync.PacketCannotSynchronize
@@ -60,9 +60,12 @@ object BSLServerSideProxyHandler {
         if (perm != null) {
             currentServerName = BSLServerHost.host!!.rename(serverName)
             println("BSL-Host | Client ${header.server.address()} identified as server name $serverName(Port $port) / Permission level ${perm.first}")
-            println("BSL-Host | Server name duplicated! Name of client ${header.server.address()} changed from $serverName to $currentServerName.")
-            BSLServerHost.host!!.addServer(currentServerName, header.server as BSLServerConnection)
-            BSLServerHost.host!!.addServer(port, header.server as BSLServerConnection)
+            if (currentServerName != serverName)
+                println("BSL-Host | Server name duplicated! Name of client ${header.server.address()} changed from $serverName to $currentServerName.")
+            val server = header.server as BSLServerConnection
+            server.serverName = currentServerName
+            BSLServerHost.host!!.addServer(currentServerName, server)
+            BSLServerHost.host!!.addServer(port, server)
             conn.currentPermission.clear()
             conn.currentPermission.addAll(perm.second)
             header.response(PacketAuthenticateResult(true, perm.first))

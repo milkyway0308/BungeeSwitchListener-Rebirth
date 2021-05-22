@@ -92,7 +92,7 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
 
     }
 
-    override fun send(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {
+    override fun sendAll(vararg packet: IBSLPacket, callBeforeWrite: Boolean) {
         throw IllegalStateException("Host server not support sending to self")
     }
 
@@ -147,6 +147,7 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
         serverReversed.remove((server as BSLServerConnection).chan)
         servers.remove(server.serverName)
         serversPort.remove(server.port)
+        println("Current servers: ${serverReversed}")
         println("BSL-Host | Server ${server.serverName}(${
             if (server.port != -1) "localhost:${server.port}" else server.chan.localAddress().toString()
         }) disconnected")

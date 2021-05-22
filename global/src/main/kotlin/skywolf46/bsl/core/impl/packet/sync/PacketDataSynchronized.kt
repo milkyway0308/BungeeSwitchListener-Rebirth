@@ -4,12 +4,10 @@ import io.netty.buffer.Unpooled
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.AbstractContainerPacketBase
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
-import skywolf46.bsl.core.abstraction.IBSLPacket
 import skywolf46.bsl.core.annotations.BSLHeader
-import skywolf46.bsl.core.impl.packet.proxy.PacketRequireProxy
+import skywolf46.bsl.core.impl.packet.PacketRequireProxy
 import skywolf46.bsl.core.util.CoveredIntRange
 import skywolf46.bsl.core.util.asLookUp
-import skywolf46.bsl.core.util.writeIntRange
 
 class PacketDataSynchronized(
     @BSLHeader var timestamp: Long,

@@ -12,6 +12,7 @@ import java.lang.IllegalStateException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.jvm.kotlinProperty
 
 class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerializer<X> {
     private val fields = mutableListOf<OrderedClass>()
@@ -127,7 +128,7 @@ class AutoScannedClassSerializer<X : Any>(val cls: Class<X>) : IByteBufSerialize
         val lst = mutableListOf<OrderedClass>()
         val lstHeader = mutableListOf<OrderedClass>()
         for (x in cls.declaredFields) {
-            if (x.name == "Companion" && cls.kotlin.companionObjectInstance != null)
+            if (x.declaringClass.kotlin.isCompanion)
                 continue
             x.isAccessible = true
             if (Modifier.isFinal(x.modifiers)) {

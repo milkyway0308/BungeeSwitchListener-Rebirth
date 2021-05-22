@@ -4,11 +4,11 @@ import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import java.net.SocketAddress
 
 interface IBSLServer {
-    fun send(packet: IBSLPacket, callBeforeWrite: Boolean) {
-        send(packet, callBeforeWrite = callBeforeWrite)
+    fun send(packet: IBSLPacket, callBeforeWrite: Boolean = true) {
+        sendAll(packet, callBeforeWrite = callBeforeWrite)
     }
 
-    fun send(vararg packet: IBSLPacket, callBeforeWrite: Boolean = true)
+    fun sendAll(vararg packet: IBSLPacket, callBeforeWrite: Boolean = true)
 
     fun getName(): String
 
