@@ -53,7 +53,7 @@ object BSLHelper {
             unit()
             return
         }
-        BSLCore.syncProvider?.sync {
+        BSLCore.syncProvider?.delayedSync(delayMillisecond = 1L) {
             waitUntilVerified(unit)
         }
     }

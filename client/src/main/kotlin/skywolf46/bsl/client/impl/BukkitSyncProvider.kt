@@ -9,4 +9,10 @@ class BukkitSyncProvider : ISyncProvider {
             unit()
         }
     }
+
+    override fun delayedSync(delayMillisecond: Long, unit: () -> Unit) {
+        schedule(delayMillisecond / 50) {
+            unit()
+        }
+    }
 }
