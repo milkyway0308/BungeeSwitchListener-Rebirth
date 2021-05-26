@@ -14,8 +14,11 @@ import java.security.PublicKey
 class BSLServerConnection(internal val chan: Channel) : IBSLServer {
     val keypair: Pair<PublicKey, PrivateKey>
     var currentPermission = mutableListOf<SecurityPermissions>()
+        private set
     var serverName: String = "Unnamed Server"
     var port: Int = -1
+        private set
+    private val address: SocketAddress = chan.remoteAddress()
 
     init {
         send(PacketRequestAuthenticate.generate().apply {
@@ -45,7 +48,7 @@ class BSLServerConnection(internal val chan: Channel) : IBSLServer {
     }
 
     override fun address(): SocketAddress {
-        return chan.remoteAddress()
+        return address
     }
 
     override fun isLocalHost(): Boolean {
