@@ -3,7 +3,6 @@ package skywolf46.bsl.core.impl.serializer.collections
 import io.netty.buffer.ByteBuf
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IByteBufSerializer
-import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.util.asLookUp
 import java.lang.IllegalStateException
 
@@ -39,11 +38,11 @@ class MapSerializer(val baseProvider: () -> MutableMap<Any, Any>) : IByteBufSeri
         for (x in 0 until readInt()) {
             var range = readInt()..readInt()
             val key =
-                BSLCore.classLookup.lookUpValue(range)?.readFully(this)
+                BSLCore.classLookup.lookUpRangeValue(range)?.readFully(this)
                     ?: throw IllegalStateException("Cannot deserialize packet range in ${range.first}..${range.last}")
             range = readInt()..readInt()
             val value =
-                BSLCore.classLookup.lookUpValue(range)?.readFully(this)
+                BSLCore.classLookup.lookUpRangeValue(range)?.readFully(this)
                     ?: throw IllegalStateException("Cannot deserialize packet range in ${range.first}..${range.last}")
             map[key] = value
         }

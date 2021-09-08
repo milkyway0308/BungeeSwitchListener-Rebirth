@@ -3,7 +3,6 @@ package skywolf46.bsl.core.impl.serializer.collections
 import io.netty.buffer.ByteBuf
 import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.IByteBufSerializer
-import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.util.asLookUp
 import java.lang.IllegalStateException
 
@@ -26,7 +25,7 @@ class ListSerializer(val baseProvider: () -> MutableList<Any>) : IByteBufSeriali
     override fun ByteBuf.readPacketHeader(): List<Any> {
         val ret = baseProvider()
         for (x in 0 until readInt())
-            ret += BSLCore.classLookup.lookUpValue(readInt()..readInt())?.readFully(this)
+            ret += BSLCore.classLookup.lookUpRangeValue(readInt()..readInt())?.readFully(this)
                 ?: IllegalStateException("")
         return ret
     }

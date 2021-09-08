@@ -1,5 +1,6 @@
 package skywolf46.bsl.server
 
+import net.md_5.bungee.BungeeCord
 import net.md_5.bungee.api.plugin.Plugin
 import net.md_5.bungee.config.Configuration
 import net.md_5.bungee.config.ConfigurationProvider

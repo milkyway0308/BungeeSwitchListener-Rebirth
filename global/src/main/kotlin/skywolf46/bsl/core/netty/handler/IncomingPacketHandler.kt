@@ -8,7 +8,6 @@ import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.IBSLPacket
 import skywolf46.bsl.core.abstraction.IBSLServer
 import skywolf46.bsl.core.enums.ListenerType
-import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.impl.BSLServerHost
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
 
@@ -23,7 +22,7 @@ class IncomingPacketHandler(val server: IBSLServer) : ChannelInboundHandlerAdapt
         }
         val range = msg.readInt()..msg.readInt()
         // Deserialization
-        val lup = BSLCore.classLookup.lookUpValue(range)
+        val lup = BSLCore.classLookup.lookUpRangeValue(range)
         if (lup == null) {
             System.err.println("BSL-Core | Cannot deserialize packet : Structure for [${range.first}~${range.last}] not registered in server")
             msg.release()

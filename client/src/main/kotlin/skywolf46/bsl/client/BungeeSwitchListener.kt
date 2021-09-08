@@ -64,6 +64,8 @@ class BungeeSwitchListener : JavaPlugin() {
             for (x in Bukkit.getOnlinePlayers()) {
                 x.kickPlayer("§bBSL - §cCritical \n§7System failure / Server will blocked until restored")
             }
+
+
         }
         socket.onSuccess {
             status = 3

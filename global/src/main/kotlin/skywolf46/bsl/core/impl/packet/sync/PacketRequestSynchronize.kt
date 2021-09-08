@@ -6,14 +6,14 @@ import skywolf46.bsl.core.abstraction.AbstractContainerPacketBase
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.AbstractPacketSyncRequest
 import skywolf46.bsl.core.annotations.BSLHeader
-import skywolf46.bsl.core.enums.DataMode
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import skywolf46.bsl.core.util.CoveredIntRange
 import skywolf46.bsl.core.util.asLookUp
-import java.lang.IllegalStateException
+import java.util.*
 
 class PacketRequestSynchronize(
-    @BSLHeader private var timestamp: Long,
+    @BSLHeader var timestamp: Long,
+    @BSLHeader var targetServer: UUID,
     range: IntRange,
     packetContainer: ByteArray,
 ) :
@@ -22,9 +22,9 @@ class PacketRequestSynchronize(
     var isResponded = false
         private set
 
-    constructor() : this(0L, 0..0, byteArrayOf())
+    constructor() : this(0L, UUID.randomUUID(), 0..0, byteArrayOf())
 
-    constructor(timestamp: Long, packet: AbstractPacketSyncRequest<*>) : this(timestamp,
+    constructor(timestamp: Long, serverUUID: UUID, packet: AbstractPacketSyncRequest<*>) : this(timestamp, serverUUID,
         packet.asLookUp().toRange(),
         BSLCore.resolve(packet::class.java as Class<Any>).let { serializer ->
             val buf = Unpooled.buffer()
@@ -50,7 +50,7 @@ class PacketRequestSynchronize(
         if (isResponded)
             throw IllegalStateException("Already responded")
         isResponded = true
-        header.response(PacketCannotSynchronize(timestamp, range))
+        header.response(PacketCannotSynchronize(timestamp, targetServer, range))
     }
 
     fun accept(packet: AbstractPacketBase<*>) {
@@ -58,6 +58,7 @@ class PacketRequestSynchronize(
             throw IllegalStateException("Already responded")
         isResponded = true
         header.response(PacketDataSynchronized(timestamp,
+            targetServer,
             packet.javaClass.asLookUp().toRange(),
             packet.run {
                 val buf = Unpooled.buffer()

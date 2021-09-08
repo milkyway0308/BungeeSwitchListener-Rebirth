@@ -5,7 +5,6 @@ import skywolf46.bsl.core.BSLCore
 import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.IBSLPacket
 import skywolf46.bsl.core.annotations.BSLHeader
-import skywolf46.bsl.core.enums.DataMode
 
 class PacketReplied() : AbstractPacketBase<PacketReplied>() {
     companion object {
@@ -41,7 +40,7 @@ class PacketReplied() : AbstractPacketBase<PacketReplied>() {
     fun unwrap(): IBSLPacket {
         val buf = Unpooled.wrappedBuffer(packet)
         val range = buf.readInt()..buf.readInt()
-        val lookup = BSLCore.classLookup.lookUpValue(range)
+        val lookup = BSLCore.classLookup.lookUpRangeValue(range)
         val packet = lookup?.readHeaderData(buf)
             ?: throw IllegalStateException("Cannot deserialize packet range in ${range.first}..${range.last}")
 

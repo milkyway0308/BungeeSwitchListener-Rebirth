@@ -10,6 +10,7 @@ import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.util.*
 
 class BSLServerConnection(internal val chan: Channel) : IBSLServer {
     val keypair: Pair<PublicKey, PrivateKey>
@@ -19,6 +20,7 @@ class BSLServerConnection(internal val chan: Channel) : IBSLServer {
     var port: Int = -1
         private set
     private val address: SocketAddress = chan.remoteAddress()
+    private lateinit var uuid: UUID
 
     init {
         send(PacketRequestAuthenticate.generate().apply {
@@ -49,6 +51,20 @@ class BSLServerConnection(internal val chan: Channel) : IBSLServer {
 
     override fun address(): SocketAddress {
         return address
+    }
+
+    override fun applyUniqueID(uuid: UUID) {
+        try {
+            this.uuid.version()
+        } catch (e: Throwable) {
+            this.uuid = uuid
+            return
+        }
+        throw IllegalStateException("Property already initialized")
+    }
+
+    override fun getUniqueID(): UUID {
+        return this.uuid
     }
 
     override fun isLocalHost(): Boolean {

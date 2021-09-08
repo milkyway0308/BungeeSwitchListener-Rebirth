@@ -10,9 +10,9 @@ import skywolf46.bsl.core.data.CancellableData
 import skywolf46.bsl.core.data.ClassAfterProcessor
 import skywolf46.bsl.core.enums.BSLSide
 import skywolf46.bsl.core.enums.ListenerType
+import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.PacketLogToServer
 import skywolf46.bsl.core.impl.packet.PacketReplied
-import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
@@ -31,9 +31,6 @@ import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.util.*
 import java.util.jar.JarFile
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.LinkedHashMap
 
 object BSLCore {
     var isServer = false
@@ -46,6 +43,30 @@ object BSLCore {
         StringLookup<Class<Any>, List<PriorityReference<MethodCaller>>>()
     val afterProcessor = mutableMapOf<Class<Any>, ClassAfterProcessor>()
 
+    init {
+        println("BSL-Core | ...Pre-initializing BSL-Core")
+        println("BSL-Core | Initializing primitive serializers")
+        registerPrimitive()
+        println("BSL-Core | Initializing default serializers")
+        registerCollections()
+        registerSerializers()
+        println("BSL-Core | Initializing default packets")
+        resolve(PacketBroadcastPacket::class.java)
+        resolve(PacketRequireProxy::class.java)
+        resolve(PacketLogToServer::class.java)
+        resolve(PacketReplied::class.java)
+        resolve(PacketAuthenticateResult::class.java)
+        resolve(PacketIntroduceSelf::class.java)
+        resolve(PacketRequestAuthenticate::class.java)
+    }
+
+
+    fun init(stream: InputStream = javaClass.getResourceAsStream("system.properties")) {
+        val prop = Properties()
+        prop.load(stream)
+        println("BSL-Core | Identified BSL Core version as ${prop["version"]}.")
+    }
+
 
     fun changeSyncProvider(sync: ISyncProvider) {
         this.syncProvider = sync
@@ -53,7 +74,7 @@ object BSLCore {
     }
 
     fun <X : Any> resolve(type: Class<X>): IByteBufSerializer<X> {
-        var lup = classLookup.lookUpValue(type)
+        var lup = classLookup.lookUpValue(type) ?: afterProcessor[type]
         if (lup == null) {
             lup = AutoScannedClassSerializer(type as Class<Any>)
             classLookup.append(type.asLookUp(), lup)
@@ -163,25 +184,6 @@ object BSLCore {
         }
     }
 
-    fun init(stream: InputStream = javaClass.getResourceAsStream("system.properties")) {
-        val prop = Properties()
-        prop.load(stream)
-        println("BSL-Core | ...BSL version ${prop["version"]}")
-        println("BSL-Core | Initializing primitive serializers")
-        registerPrimitive()
-        println("BSL-Core | Initializing default serializers")
-        registerCollections()
-        registerSerializers()
-        println("BSL-Core | Initializing default packets")
-        resolve(PacketBroadcastPacket::class.java)
-        resolve(PacketRequireProxy::class.java)
-        resolve(PacketLogToServer::class.java)
-        resolve(PacketReplied::class.java)
-        resolve(PacketAuthenticateResult::class.java)
-        resolve(PacketIntroduceSelf::class.java)
-        resolve(PacketRequestAuthenticate::class.java)
-    }
-
     private fun registerPrimitive() {
         register(IntSerializer(), Int::class.java, Int::class.javaPrimitiveType!!)
         register(LongSerializer(), Long::class.java, Long::class.javaPrimitiveType!!)
@@ -190,8 +192,8 @@ object BSLCore {
         register(ByteSerializer(), Byte::class.java, Byte::class.javaPrimitiveType!!)
         register(ShortSerializer(), Short::class.java, Short::class.javaPrimitiveType!!)
         register(BooleanSerializer(), Boolean::class.java, Boolean::class.javaPrimitiveType!!)
-        register(StringSerializer(), String::class.java)
         register(ByteArraySerializer(), ByteArray::class.java)
+        register(StringSerializer(), String::class.java)
     }
 
     private fun registerCollections() {
@@ -213,6 +215,7 @@ object BSLCore {
 
     private fun registerSerializers() {
         register(IntRangeSerializer(), IntRange::class.java)
+        register(UUIDSerializer(), UUID::class.java)
     }
 
 }
@@ -231,7 +234,7 @@ fun <X : AbstractPacketBase<X>> AbstractPacketBase<X>.listener(
 
 fun <X : AbstractPacketBase<X>> AbstractPacketBase<X>.handle(type: ListenerType<Any>, packet: AbstractPacketBase<*>) {
     val interrupter = CancellableData(packet)
-    BSLCore.listenerLookup.lookUpValue(packet.asLookUp().toRange())?.of(type)?.forEach { x ->
+    BSLCore.listenerLookup.lookUpRangeValue(packet.asLookUp().toRange())?.of(type)?.forEach { x ->
         try {
             x.data(interrupter)
             if (interrupter.isInterrupted)

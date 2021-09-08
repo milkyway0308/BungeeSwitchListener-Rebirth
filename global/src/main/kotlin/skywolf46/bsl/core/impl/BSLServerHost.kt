@@ -18,6 +18,8 @@ import skywolf46.bsl.core.netty.handler.IncomingPacketHandler
 import skywolf46.bsl.core.netty.handler.OutgoingPacketHandler
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import java.net.SocketAddress
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * BSL Host server
@@ -28,12 +30,14 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
             internal set
     }
 
+    private val serverUUID = mutableMapOf<UUID, BSLServerConnection>()
     private val servers = mutableMapOf<String, BSLServerConnection>()
     private val serversPort = mutableMapOf<Int, BSLServerConnection>()
     private val serverReversed = mutableMapOf<Channel, BSLServerConnection>()
-    private val nameDuplicated = mutableMapOf<String, Integer>()
+    private val nameDuplicated = mutableMapOf<String, Int>()
     private val bossGroup: EventLoopGroup
     private val workerGroup: EventLoopGroup
+    private val uuid = UUID.randomUUID()
 
     init {
         println("BSL-Host | Server is starting on port $port")
@@ -109,6 +113,14 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
         throw java.lang.IllegalStateException("Unsupported Operation")
     }
 
+    override fun applyUniqueID(uuid: UUID) {
+        throw IllegalStateException("UUID applying not supported to mains erver")
+    }
+
+    override fun getUniqueID(): UUID {
+        return uuid
+    }
+
     fun fromPort(targetPort: Int): IBSLServer? {
         return serversPort[targetPort]
     }
@@ -158,6 +170,11 @@ class BSLServerHost(val port: Int) : IBSLProxyServer {
 
     fun addServerTemporary(connection: BSLServerConnection) {
         serverReversed[connection.chan] = connection
+        var uuid = UUID.randomUUID()
+        while (uuid in this.serverUUID) {
+            uuid = UUID.randomUUID()
+        }
+        connection.applyUniqueID(uuid)
     }
 
     fun getServers(): MutableList<IBSLServer> {

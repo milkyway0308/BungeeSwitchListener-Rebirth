@@ -17,6 +17,7 @@ import skywolf46.bsl.core.netty.handler.IncomingPacketHandler
 import skywolf46.bsl.core.netty.handler.OutgoingPacketHandler
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import java.net.SocketAddress
+import java.util.*
 
 class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer {
     private var chan: Channel? = null
@@ -48,7 +49,7 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
                     override fun initChannel(ch: SocketChannel) {
                         ch.pipeline().addLast(
                             ErrorPrintingHandler(),
-                            LengthFieldBasedFrameDecoder(1024, 0, 4, 0, 4),
+                            LengthFieldBasedFrameDecoder(Integer.MAX_VALUE - 600, 0, 4, 0, 4),
                             IncomingPacketHandler(this@BSLServerSocket),
                             LengthFieldPrepender(4),
                             OutgoingPacketHandler(),
@@ -98,5 +99,13 @@ class BSLServerSocket(val ip: String = "localhost", val port: Int) : IBSLServer 
 
     override fun address(): SocketAddress {
         throw java.lang.IllegalStateException("Unsupported Operation")
+    }
+
+    override fun applyUniqueID(uuid: UUID) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getUniqueID(): UUID {
+        TODO("Not yet implemented")
     }
 }

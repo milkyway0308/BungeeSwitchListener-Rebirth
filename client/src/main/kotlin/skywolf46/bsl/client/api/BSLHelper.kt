@@ -7,7 +7,9 @@ import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.abstraction.AbstractPacketSyncRequest
 import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.PacketReplied
+import skywolf46.bsl.core.impl.packet.sync.PacketDataSynchronized
 import skywolf46.bsl.core.impl.packet.sync.PacketRequestSynchronize
+import java.util.*
 
 object BSLHelper {
 
@@ -37,7 +39,7 @@ object BSLHelper {
 
     @JvmStatic
     fun requestSync(packetClass: AbstractPacketSyncRequest<*>) {
-        send(PacketRequestSynchronize(0, packetClass))
+        send(PacketRequestSynchronize(0, UUID.randomUUID(), packetClass))
     }
 
     @JvmStatic
@@ -58,4 +60,21 @@ object BSLHelper {
         }
     }
 
+}
+
+private val requestPair = mutableMapOf<Class<AbstractPacketSyncRequest<*>>, Class<PacketDataSynchronized>>()
+
+private val requestPairRev = mutableMapOf<Class<PacketDataSynchronized>, Class<AbstractPacketSyncRequest<*>>>()
+
+fun Class<AbstractPacketSyncRequest<*>>.registerPair(cls: Class<PacketDataSynchronized>) {
+    requestPair[this] = cls
+    requestPairRev[cls] = this
+}
+
+fun Class<AbstractPacketSyncRequest<*>>.findResultPair(): Class<PacketDataSynchronized>? {
+    return requestPair[this]
+}
+
+fun Class<PacketDataSynchronized>.findSyncPair(): Class<AbstractPacketSyncRequest<*>>? {
+    return requestPairRev[this]
 }

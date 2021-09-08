@@ -8,9 +8,9 @@ import skywolf46.bsl.core.annotations.BSLSideOnly
 import skywolf46.bsl.core.enums.BSLSide
 import skywolf46.bsl.core.impl.BSLServerConnection
 import skywolf46.bsl.core.impl.BSLServerHost
+import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.PacketLogToServer
 import skywolf46.bsl.core.impl.packet.PacketReplied
-import skywolf46.bsl.core.impl.packet.PacketBroadcastPacket
 import skywolf46.bsl.core.impl.packet.PacketRequireProxy
 import skywolf46.bsl.core.impl.packet.security.PacketAuthenticateResult
 import skywolf46.bsl.core.impl.packet.security.PacketIntroduceSelf
@@ -19,7 +19,6 @@ import skywolf46.bsl.core.impl.packet.sync.PacketDataSynchronized
 import skywolf46.bsl.core.impl.packet.sync.PacketRequestSynchronize
 import skywolf46.bsl.core.security.permissions.SecurityPermissions
 import skywolf46.bsl.server.BungeeSwitchListener
-import java.lang.IllegalStateException
 import java.util.concurrent.atomic.AtomicLong
 
 @BSLSideOnly(BSLSide.PROXY)
@@ -81,13 +80,13 @@ object BSLServerSideProxyHandler {
         val servers = BSLServerHost.host!!.getVerifiedServers()
             .filter { x -> x != header.server && x.hasPermission(SecurityPermissions.ADMIN) }
             .toMutableList()
-        val packetToSend = PacketRequestSynchronize(currentRequest, range, packet)
+        val packetToSend = PacketRequestSynchronize(currentRequest, header.server.getUniqueID(), range, packet)
         val invoker: Pair<IBSLServer, () -> Unit> = header.server to {
             if (servers.isNotEmpty()) {
                 servers.removeAt(0).send(packetToSend)
             } else {
                 syncRequested.remove(currentRequest)
-                header.server.send(PacketCannotSynchronize(0, range))
+                header.server.send(PacketCannotSynchronize(0, targetServer, range))
             }
         }
         syncRequested[currentRequest] = invoker
@@ -102,7 +101,9 @@ object BSLServerSideProxyHandler {
 
     @BSLHandler
     fun PacketDataSynchronized.onSyncSuccess() {
-        syncRequested[timestamp]?.first?.send(this)
+        syncRequested[timestamp]?.first?.send(this)?.apply {
+            syncRequested -=timestamp
+        }
             ?: throw IllegalStateException("Illegal synchronization: Timestamp ${timestamp} is not in queue")
     }
 }

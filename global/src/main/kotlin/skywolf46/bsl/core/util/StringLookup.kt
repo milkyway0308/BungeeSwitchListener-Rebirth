@@ -1,7 +1,6 @@
 package skywolf46.bsl.core.util
 
 import java.util.*
-import kotlin.collections.HashMap
 
 open class StringLookup<KEY : Any, VALUE : Any> {
     private val map = HashMap<CoveredIntRange, SafeLookup<KEY>>()
@@ -27,7 +26,7 @@ open class StringLookup<KEY : Any, VALUE : Any> {
     }
 
 
-    fun lookUpValue(hash: IntRange): VALUE? {
+    fun lookUpRangeValue(hash: IntRange): VALUE? {
         return mapValue[CoveredIntRange(hash)]
     }
 
@@ -42,9 +41,9 @@ open class StringLookup<KEY : Any, VALUE : Any> {
 
     fun lookUpValueOrDefault(key: SafeLookup<KEY>, def: () -> VALUE) = lookUpValueOrDefault(key.toRange(), def)
 
-    fun <X> lookUpValue(cls: Class<X>) = lookUpValue(SafeLookup(cls.name, cls).toRange())
-    fun lookUpValue(any: Any) = lookUpValue(any.asLookUp().toRange())
-    fun lookUpValue(lookup: SafeLookup<KEY>) = lookUpValue(lookup.toRange())
+    fun <X> lookUpValue(cls: Class<X>) = lookUpRangeValue(SafeLookup(cls.name, cls).toRange())
+    fun lookUpValue(any: Any) = lookUpRangeValue(any.asLookUp().toRange())
+    fun lookUpValue(lookup: SafeLookup<KEY>) = lookUpRangeValue(lookup.toRange())
 
 
     class SafeLookup<X : Any> {

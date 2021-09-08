@@ -1,7 +1,5 @@
 package skywolf46.bsl.core.storage
 
-import skywolf46.bsl.core.BSLCore
-import skywolf46.bsl.core.abstraction.AbstractPacketBase
 import skywolf46.bsl.core.util.StringLookup
 import skywolf46.bsl.core.util.asLookUp
 import skywolf46.extrautility.util.PriorityReference
@@ -21,8 +19,8 @@ class PriorityHandlerHandlerStorage<KEY : Any, VALUE : Any> {
         }.add(PriorityReference(value, priority))
     }
 
-    fun of(range: IntRange) = lookUp.lookUpValue(range)
+    fun of(range: IntRange) = lookUp.lookUpRangeValue(range)
 
-    fun of(key: KEY) = lookUp.lookUpValue(key.asLookUp().toRange())
+    fun of(key: KEY) = lookUp.lookUpRangeValue(key.asLookUp().toRange())
 }
 
